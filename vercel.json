@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sweep-approvals",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sweep-abandoned-orders",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
