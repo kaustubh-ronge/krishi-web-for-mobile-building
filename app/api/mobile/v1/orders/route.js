@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBuyerOrders, initiateCheckout, createCODOrder } from "@/actions/orders";
+import { getBuyerOrders, initiateCheckout } from "@/actions/orders";
 
 export async function GET(req) {
   try {
@@ -22,23 +22,12 @@ export async function POST(req) {
     const { action, idempotencyId } = body;
 
     if (action === "initiateCheckout") {
-      const result = await initiateCheckout();
+      const result = await initiateCheckout(body.params); // Pass params which includes addressData etc.
       if (result?.error) {
         return NextResponse.json({ success: false, error: result.error }, { status: 400 });
       }
       return NextResponse.json({ success: true, data: result });
     } 
-    
-    if (action === "createCODOrder") {
-      if (!idempotencyId) {
-        return NextResponse.json({ success: false, error: "idempotencyId is required for COD orders" }, { status: 400 });
-      }
-      const result = await createCODOrder(idempotencyId);
-      if (result?.error) {
-        return NextResponse.json({ success: false, error: result.error }, { status: 400 });
-      }
-      return NextResponse.json({ success: true, data: result });
-    }
 
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
 
