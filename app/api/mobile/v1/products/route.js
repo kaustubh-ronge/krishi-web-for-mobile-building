@@ -1,12 +1,26 @@
 import { NextResponse } from "next/server";
 import { getMarketplaceListings, createProductListing } from "@/actions/products";
+import { getProductById } from "@/actions/products";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
+
+    // Single product fetch by ID
+    const productId = searchParams.get("id");
+    if (productId) {
+      const result = await getProductById(productId);
+      if (result?.error) {
+        return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+      }
+      return NextResponse.json({ success: true, data: result.data || result });
+    }
+
     const params = {
       page: parseInt(searchParams.get("page") || "1", 10),
-      limit: parseInt(searchParams.get("limit") || "12", 10),
+      limit: parseInt(searchParams.get("limit") || "20", 10),
       search: searchParams.get("search") || "",
       category: searchParams.get("category") || "All",
       sellerType: searchParams.get("sellerType") || "all",
@@ -27,6 +41,7 @@ export async function GET(req) {
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
+
 
 export async function POST(req) {
   try {

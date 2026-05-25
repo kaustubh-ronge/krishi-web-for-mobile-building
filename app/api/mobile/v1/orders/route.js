@@ -1,20 +1,37 @@
 import { NextResponse } from "next/server";
 import { getBuyerOrders, initiateCheckout } from "@/actions/orders";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req) {
   try {
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get("id");
+
     const result = await getBuyerOrders();
 
     if (result?.error) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, data: result.data || result });
+    const orders = result.data || result || [];
+
+    // If requesting a specific order by ID, return just that one
+    if (orderId) {
+      const order = orders.find((o) => o.id === orderId);
+      if (!order) {
+        return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, data: order });
+    }
+
+    return NextResponse.json({ success: true, data: orders });
   } catch (error) {
     console.error("Mobile API getBuyerOrders Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
+
 
 export async function POST(req) {
   try {
