@@ -3,6 +3,17 @@ import { getCart, addToCart } from "@/actions/cart";
 
 export const dynamic = "force-dynamic";
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept",
+    },
+  });
+}
+
 export async function GET(req) {
   try {
     const result = await getCart();
@@ -29,13 +40,15 @@ export async function POST(req) {
 
     const result = await addToCart(productId, quantity);
 
+    console.log("addToCart Result for Mobile:", result);
+
     if (result?.error) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, data: result.cartItem });
   } catch (error) {
-    console.error("Mobile API addToCart Error:", error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    console.error("Mobile API addToCart Error Stack:", error);
+    return NextResponse.json({ success: false, error: "Internal server error", details: error.message }, { status: 500 });
   }
 }

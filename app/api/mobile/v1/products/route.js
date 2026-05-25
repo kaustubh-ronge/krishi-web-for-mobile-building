@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { getMarketplaceListings, createProductListing } from "@/actions/products";
-import { getProductById } from "@/actions/products";
+import { getProductDetail } from "@/actions/products";
 
 export const dynamic = "force-dynamic";
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept",
+    },
+  });
+}
 
 export async function GET(req) {
   try {
@@ -11,7 +22,7 @@ export async function GET(req) {
     // Single product fetch by ID
     const productId = searchParams.get("id");
     if (productId) {
-      const result = await getProductById(productId);
+      const result = await getProductDetail(productId);
       if (result?.error) {
         return NextResponse.json({ success: false, error: result.error }, { status: 400 });
       }

@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { selectRole } from "@/actions/users";
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept",
+    },
+  });
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();

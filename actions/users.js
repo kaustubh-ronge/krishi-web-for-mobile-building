@@ -46,9 +46,12 @@ export async function selectRole(formData) {
 
   try {
     // 1. Update Database FIRST (Primary Source of Truth)
-    await db.user.update({
+    // We use upsert because mobile app users bypass the web's checkUser logic during signup
+    const email = user.emailAddresses?.[0]?.emailAddress || "unknown@krishiconnect.com";
+    await db.user.upsert({
       where: { id: userId },
-      data: { role: role },
+      update: { role: role },
+      create: { id: userId, email: email, role: role },
     });
   } catch (err) {
     console.error("selectRole Error: Database update failed -", err);
