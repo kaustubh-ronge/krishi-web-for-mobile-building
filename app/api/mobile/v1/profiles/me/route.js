@@ -4,6 +4,17 @@ import { db } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept",
+    },
+  });
+}
+
 export async function GET(req) {
   try {
     const clerkUser = await currentUser();
