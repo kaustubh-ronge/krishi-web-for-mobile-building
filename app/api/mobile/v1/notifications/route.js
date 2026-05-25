@@ -1,5 +1,6 @@
+import { getUserNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "@/actions/notifications";
 import { NextResponse } from "next/server";
-import { getUserNotifications, markNotificationRead, markAllNotificationsRead } from "@/actions/notifications";
+
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +27,9 @@ async function handleMarkRead(req) {
 
     let result;
     if (markAll) {
-      result = await markAllNotificationsRead();
+      result = await markAllNotificationsAsRead();
     } else if (notificationId) {
-      result = await markNotificationRead(notificationId);
+      result = await markNotificationAsRead(notificationId);
     } else {
       return NextResponse.json({ success: false, error: "notificationId or markAll required" }, { status: 400 });
     }
