@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { 
   createSpecialDeliveryRequest, 
   getUserSpecialDeliveryRequests, 
-  markInquiryAsSent 
+  markInquiryAsSent,
+  deleteSpecialDeliveryRequest
 } from "@/actions/special-delivery";
 import { sendSupportMessage } from "@/actions/support";
 
@@ -70,6 +71,26 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("Mobile API special-delivery POST Error:", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Request ID is required" }, { status: 400 });
+    }
+
+    const res = await deleteSpecialDeliveryRequest(id);
+    if (!res.success) {
+      return NextResponse.json({ success: false, error: res.error }, { status: 400 });
+    }
+    return NextResponse.json({ success: true, message: "Request cancelled/cleared successfully" });
+  } catch (error) {
+    console.error("Mobile API special-delivery DELETE Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
