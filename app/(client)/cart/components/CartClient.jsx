@@ -1693,7 +1693,7 @@ const loadRazorpay = () => {
     });
 };
 
-const CountdownTimer = ({ expiryDate, onExpire }) => {
+const CountdownTimer = ({ expiryDate, onExpire, format = 'mm:ss' }) => {
     const [timeLeft, setTimeLeft] = useState("");
 
     useEffect(() => {
@@ -1708,13 +1708,21 @@ const CountdownTimer = ({ expiryDate, onExpire }) => {
                 return;
             }
 
-            const mins = Math.floor(diff / 1000 / 60);
-            const secs = Math.floor((diff / 1000) % 60);
-            setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`);
+            if (format === 'dhms') {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const mins = Math.floor((diff / 1000 / 60) % 60);
+                const secs = Math.floor((diff / 1000) % 60);
+                setTimeLeft(`${days}d : ${hours}h : ${mins}m : ${secs}s`);
+            } else {
+                const mins = Math.floor(diff / 1000 / 60);
+                const secs = Math.floor((diff / 1000) % 60);
+                setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`);
+            }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [expiryDate, onExpire]);
+    }, [expiryDate, onExpire, format]);
 
     return <span>{timeLeft}</span>;
 };
@@ -2646,7 +2654,16 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                                                        <Badge className="bg-emerald-600 text-white border-0 text-[8px] font-black uppercase shrink-0">READY</Badge>
+                                                                        <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-lg border border-emerald-100 shadow-sm">
+                                                                            <Clock className="h-3 w-3 text-emerald-500" />
+                                                                            <span className="text-[10px] font-black text-emerald-700 tracking-wider">
+                                                                                <CountdownTimer
+                                                                                    expiryDate={new Date(new Date(activeRequest.approvedAt || activeRequest.updatedAt).getTime() + 10 * 24 * 60 * 60 * 1000)}
+                                                                                    onExpire={() => router.refresh()}
+                                                                                    format="dhms"
+                                                                                />
+                                                                            </span>
+                                                                        </div>
                                                                         <button
                                                                             onClick={async (e) => {
                                                                                 e.stopPropagation();

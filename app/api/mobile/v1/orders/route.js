@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBuyerOrders, initiateCheckout } from "@/actions/orders";
+import { getBuyerOrders, initiateCheckout, cancelPendingOrder } from "@/actions/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +45,14 @@ export async function POST(req) {
       }
       return NextResponse.json({ success: true, data: result });
     } 
+    
+    if (action === "cancelPending") {
+      const result = await cancelPendingOrder(body.orderId);
+      if (result?.error) {
+        return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+      }
+      return NextResponse.json({ success: true, data: result });
+    }
 
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
 
