@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   "/sitemap.xml",
   "/robots.txt",
   "/.well-known(.*)",
+  "/mobile-checkout(.*)",
 ]);
 
 const isMobileApiRoute = createRouteMatcher(["/api/mobile(.*)"]);

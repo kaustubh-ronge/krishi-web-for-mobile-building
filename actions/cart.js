@@ -15,8 +15,8 @@ async function getSellableStock(productId, currentStock) {
       status: 'APPROVED',
       isConsumed: false,
       OR: [
-          { approvedAt: { gte: tenDaysAgo } },
-          { approvedAt: null, updatedAt: { gte: tenDaysAgo } }
+        { approvedAt: { gte: tenDaysAgo } },
+        { approvedAt: null, updatedAt: { gte: tenDaysAgo } }
       ]
     },
     _sum: { quantity: true }
@@ -322,8 +322,9 @@ export async function updateCartItemQuantity(cartItemId, newQuantity) {
     }
 
     // Min Quantity Check
-    if (newQuantity < (item.product.minOrderQuantity || 1)) {
-      return { success: false, error: `Minimum order is ${item.product.minOrderQuantity || 1} ${item.product.unit}.` };
+    const minQty = approvedReq ? 1 : (item.product.minOrderQuantity || 1);
+    if (newQuantity < minQty) {
+      return { success: false, error: `Minimum order is ${minQty} ${item.product.unit}.` };
     }
 
     await db.cartItem.update({
@@ -390,11 +391,11 @@ export async function reconcileCartItems() {
     for (const item of cart.items) {
       const stock = item.product.availableStock;
       const sellableStock = await getSellableStock(item.productId, stock);
-      
+
       const approvedReq = await db.specialDeliveryRequest.findFirst({
         where: { userId: user.id, productId: item.productId, status: 'APPROVED', isConsumed: false }
       });
-      
+
       const effectiveStockLimit = approvedReq ? approvedReq.quantity : sellableStock;
 
       // If product has been completely sold out
