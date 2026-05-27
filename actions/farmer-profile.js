@@ -55,7 +55,14 @@ export async function createFarmerProfile(formData) {
   try {
     validatedData = farmerSchema.parse(formValues);
   } catch (error) {
-    return { success: false, error: "Validation failed." };
+    console.error("ZOD VALIDATION ERROR:", error.issues || error);
+    let errorMessage = "Validation failed.";
+    if (error.errors && error.errors.length > 0) {
+      errorMessage = error.errors[0].message;
+    } else if (error.issues && error.issues.length > 0) {
+      errorMessage = error.issues[0].message;
+    }
+    return { success: false, error: errorMessage };
   }
 
   const { name, phone, address, aadharNumber, farmName, district, region, country, state, city, pincode, lat, lng, upiId, paymentType, bankName, accountNumber, ifscCode } = validatedData;
@@ -126,7 +133,14 @@ export async function updateFarmerProfile(formData) {
   try {
     validatedData = farmerSchema.parse(formValues);
   } catch (error) {
-    return { success: false, error: "Validation failed." };
+    console.error("ZOD VALIDATION ERROR:", error.issues || error);
+    let errorMessage = "Validation failed.";
+    if (error.errors && error.errors.length > 0) {
+      errorMessage = error.errors[0].message;
+    } else if (error.issues && error.issues.length > 0) {
+      errorMessage = error.issues[0].message;
+    }
+    return { success: false, error: errorMessage };
   }
 
   const { name, phone, address, aadharNumber, farmName, district, region, upiId, paymentType, bankName, accountNumber, ifscCode, country, state, city, pincode, lat, lng } = validatedData;

@@ -52,7 +52,11 @@ export async function createAgentProfile(formData) {
   try {
     validatedData = agentSchema.parse(formValues);
   } catch (error) {
-    return { success: false, error: "Validation failed." };
+    let errorMessage = "Validation failed.";
+    if (error.errors && error.errors.length > 0) {
+      errorMessage = error.errors[0].message;
+    }
+    return { success: false, error: errorMessage };
   }
 
   const { name, companyName, phone, region, district, upiId, paymentType, bankName, accountNumber, ifscCode, agentType, aadharNumber, address, country, state, city, pincode, lat, lng, usagePurpose } = validatedData;
@@ -105,7 +109,11 @@ export async function updateAgentProfile(formData) {
   try {
     validatedData = agentSchema.parse(formValues);
   } catch (error) {
-    return { success: false, error: "Validation failed." };
+    let errorMessage = "Validation failed.";
+    if (error.errors && error.errors.length > 0) {
+      errorMessage = error.errors[0].message;
+    }
+    return { success: false, error: errorMessage };
   }
 
   const { name, companyName, phone, region, district, upiId, paymentType, bankName, accountNumber, ifscCode, agentType, aadharNumber, address, country, state, city, pincode, lat, lng, usagePurpose } = validatedData;

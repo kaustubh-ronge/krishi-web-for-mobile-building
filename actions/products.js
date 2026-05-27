@@ -203,7 +203,12 @@ export async function createProductListing(formData) {
  * 2. GET MY LISTINGS (Auto-detects role)
  */
 export async function getMyListings() {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+  } catch (e) {
+    return { success: false, error: "Failed to verify authentication." };
+  }
   if (!user) return { success: false, error: "Not logged in" };
 
   try {
@@ -239,7 +244,12 @@ export async function getMyListings() {
  * 3. GET SINGLE PRODUCT (For Edit)
  */
 export async function getProductById(listingId) {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+  } catch (e) {
+    return { success: false, error: "Failed to verify authentication." };
+  }
   if (!user) return { success: false, error: "Not logged in" };
 
   try {
@@ -270,7 +280,12 @@ export async function getProductById(listingId) {
  * 4. UPDATE LISTING (Secure Ownership Check)
  */
 export async function updateProductListing(listingId, formData) {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+  } catch (e) {
+    return { success: false, error: "Failed to verify authentication." };
+  }
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
@@ -375,7 +390,12 @@ export async function updateProductListing(listingId, formData) {
  * 5. DELETE LISTING
  */
 export async function deleteListing(listingId) {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+  } catch (e) {
+    return { success: false, error: "Failed to verify authentication." };
+  }
   if (!user) return { success: false, error: "Not logged in" };
 
   try {
@@ -430,9 +450,15 @@ export async function getMarketplaceListings({
   region = "",
   district = ""
 } = {}) {
-  const user = await currentUser();
+  let user = null;
   
   try {
+    try {
+      user = await currentUser();
+    } catch (e) {
+      console.warn("getMarketplaceListings: failed to fetch currentUser, proceeding as guest.");
+    }
+    
     const skip = (page - 1) * limit;
     
     let whereClause = {

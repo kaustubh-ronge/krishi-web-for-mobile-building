@@ -5,6 +5,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { sendDeliveryProfileCreationEmail } from "@/lib/email";
 import { sanitizeContent } from "@/lib/utils";
+import { deliverySchema } from "@/lib/zodSchema";
 
 /**
  * Creates a new Delivery Boy profile.
@@ -33,6 +34,24 @@ export async function createDeliveryProfile(formData) {
 
     // 2. Extract and Sanitize
     const rawData = Object.fromEntries(formData.entries());
+    
+    // Convert numbers before Zod parsing
+    if (rawData.lat) rawData.lat = parseFloat(rawData.lat);
+    if (rawData.lng) rawData.lng = parseFloat(rawData.lng);
+    if (rawData.radius) rawData.radius = parseFloat(rawData.radius);
+    if (rawData.pricePerKm) rawData.pricePerKm = parseFloat(rawData.pricePerKm);
+
+    let validatedData;
+    try {
+      validatedData = deliverySchema.parse(rawData);
+    } catch (error) {
+      let errorMessage = "Validation failed.";
+      if (error.errors && error.errors.length > 0) {
+        errorMessage = error.errors[0].message;
+      }
+      return { success: false, error: errorMessage };
+    }
+
     const safeParse = (val) => {
       const p = parseFloat(val);
       return isNaN(p) ? 0 : p;
@@ -107,6 +126,24 @@ export async function updateDeliveryProfile(formData) {
     });
 
     if (!profile) throw new Error("Profile not found");
+
+    const rawData = Object.fromEntries(formData.entries());
+    
+    if (rawData.lat) rawData.lat = parseFloat(rawData.lat);
+    if (rawData.lng) rawData.lng = parseFloat(rawData.lng);
+    if (rawData.radius) rawData.radius = parseFloat(rawData.radius);
+    if (rawData.pricePerKm) rawData.pricePerKm = parseFloat(rawData.pricePerKm);
+
+    let validatedData;
+    try {
+      validatedData = deliverySchema.parse(rawData);
+    } catch (error) {
+      let errorMessage = "Validation failed.";
+      if (error.errors && error.errors.length > 0) {
+        errorMessage = error.errors[0].message;
+      }
+      return { success: false, error: errorMessage };
+    }
 
     const safeParse = (val) => {
       const p = parseFloat(val);
