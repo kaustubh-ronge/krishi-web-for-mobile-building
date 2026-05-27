@@ -6,6 +6,25 @@ import { validateAction, standardRateLimit } from "@/lib/arcjet";
 import { db } from "@/lib/prisma";
 import { cache } from "react";
 
+// --- DYNAMIC STOCK RESERVATION HELPER ---
+async function getSellableStock(productId, currentStock) {
+  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+  const activeApprovals = await db.specialDeliveryRequest.aggregate({
+    where: {
+      productId: productId,
+      status: 'APPROVED',
+      isConsumed: false,
+      OR: [
+          { approvedAt: { gte: tenDaysAgo } },
+          { approvedAt: null, updatedAt: { gte: tenDaysAgo } }
+      ]
+    },
+    _sum: { quantity: true }
+  });
+  const reservedStock = activeApprovals._sum.quantity || 0;
+  return Math.max(0, currentStock - reservedStock);
+}
+
 // 1. GET CART
 export const getCart = cache(async () => {
   const user = await currentUser();
@@ -117,14 +136,7 @@ export async function addToCart(productId, quantity) {
     const currentQtyInCart = existingItem ? existingItem.quantity : 0;
     const totalPotentialQty = currentQtyInCart + quantity;
 
-    if (product.availableStock < totalPotentialQty) {
-      return {
-        success: false,
-        error: `Cannot add more. You already have ${currentQtyInCart} in cart. Max available is ${product.availableStock}.`
-      };
-    }
-
-    // 2.5 Out of Range Target Enforcement
+    // 2.5 Dynamic Stock & Out of Range Enforcement
     const approvedReq = await db.specialDeliveryRequest.findFirst({
       where: {
         userId: user.id,
@@ -134,16 +146,32 @@ export async function addToCart(productId, quantity) {
       }
     });
 
-    if (approvedReq) {
-      if (totalPotentialQty > approvedReq.quantity) {
+    // If item was previously soft-removed from cart but approval is still active, reset the flag
+    if (approvedReq && approvedReq.isRemovedFromCart) {
+      await db.specialDeliveryRequest.update({
+        where: { id: approvedReq.id },
+        data: { isRemovedFromCart: false }
+      });
+    }
+
+    const sellableStock = await getSellableStock(productId, product.availableStock);
+    const effectiveStockLimit = approvedReq ? approvedReq.quantity : sellableStock;
+
+    if (totalPotentialQty > effectiveStockLimit) {
+      if (approvedReq) {
         return {
           success: false,
           error: `Special Delivery restriction: You are approved for a maximum of ${approvedReq.quantity} units, but your cart would contain ${totalPotentialQty}.`
         };
+      } else {
+        return {
+          success: false,
+          error: `Cannot add more. You already have ${currentQtyInCart} in cart. Max available is ${sellableStock}.`
+        };
       }
     }
 
-    // 3. Atomic Item Mutation with Race-Condition Guard for Out-Of-Range
+    // 3. Atomic Item Mutation with Race-Condition Guard
     if (approvedReq) {
       try {
         await db.$transaction(async (tx) => {
@@ -197,6 +225,10 @@ export async function addToCart(productId, quantity) {
 
 /**
  * 3. REMOVE FROM CART
+ * - Normal in-range products: hard-delete (standard e-commerce behavior).
+ * - Approved out-of-range products: soft-hide by setting isRemovedFromCart=true on the
+ *   SpecialDeliveryRequest. This preserves the 10-day approval timer and reserved stock
+ *   allocation so the user can re-add without re-requesting.
  */
 export async function removeFromCart(cartItemId) {
   await validateAction(standardRateLimit);
@@ -206,7 +238,7 @@ export async function removeFromCart(cartItemId) {
   try {
     const item = await db.cartItem.findUnique({
       where: { id: cartItemId },
-      include: { cart: { select: { userId: true } } }
+      include: { cart: { select: { userId: true } }, product: { select: { id: true } } }
     });
 
     const dbUser = await db.user.findUnique({ where: { id: user.id }, select: { role: true } });
@@ -218,13 +250,33 @@ export async function removeFromCart(cartItemId) {
       return { success: false, error: "Item not found or unauthorized" };
     }
 
-    await db.cartItem.delete({
-      where: { id: cartItemId }
+    // Check if this product has an active, non-consumed Special Delivery approval
+    const activeApproval = await db.specialDeliveryRequest.findFirst({
+      where: {
+        userId: user.id,
+        productId: item.product.id,
+        status: 'APPROVED',
+        isConsumed: false,
+      }
     });
+
+    if (activeApproval) {
+      // CASE 2 — OUT-OF-RANGE APPROVED PRODUCT:
+      // Soft-hide: mark the approval as removed from cart UI but preserve the reservation.
+      // The CartItem is still fully deleted — it just won't reappear unless re-added.
+      await db.specialDeliveryRequest.update({
+        where: { id: activeApproval.id },
+        data: { isRemovedFromCart: true }
+      });
+    }
+
+    // Always hard-delete the CartItem itself (for both cases)
+    await db.cartItem.delete({ where: { id: cartItemId } });
+
     revalidatePath('/cart');
-    return { success: true };
+    return { success: true, wasApproved: !!activeApproval };
   } catch (error) {
-    console.error("Remove Cart Error:", error);
+    console.log("Remove Cart Error:", error?.message || error);
     return { success: false, error: "Failed to remove item." };
   }
 }
@@ -259,8 +311,14 @@ export async function updateCartItemQuantity(cartItemId, newQuantity) {
     }
 
     // Check availability before updating
-    if (item.product.availableStock < newQuantity) {
-      return { success: false, error: `Only ${item.product.availableStock} available.` };
+    const approvedReq = await db.specialDeliveryRequest.findFirst({
+      where: { userId: user.id, productId: item.productId, status: 'APPROVED', isConsumed: false }
+    });
+    const sellableStock = await getSellableStock(item.productId, item.product.availableStock);
+    const effectiveStockLimit = approvedReq ? approvedReq.quantity : sellableStock;
+
+    if (effectiveStockLimit < newQuantity) {
+      return { success: false, error: `Only ${effectiveStockLimit} available.` };
     }
 
     // Min Quantity Check
@@ -331,24 +389,32 @@ export async function reconcileCartItems() {
 
     for (const item of cart.items) {
       const stock = item.product.availableStock;
+      const sellableStock = await getSellableStock(item.productId, stock);
+      
+      const approvedReq = await db.specialDeliveryRequest.findFirst({
+        where: { userId: user.id, productId: item.productId, status: 'APPROVED', isConsumed: false }
+      });
+      
+      const effectiveStockLimit = approvedReq ? approvedReq.quantity : sellableStock;
 
       // If product has been completely sold out
-      if (stock <= 0) {
+      if (effectiveStockLimit <= 0) {
         await db.cartItem.delete({ where: { id: item.id } });
         messages.push(`"${item.product.productName}" was removed from your cart because it is now out of stock.`);
       }
       // If available stock dropped below requested quantity
-      else if (stock < item.quantity) {
-        const minQty = item.product.minOrderQuantity || 1;
-        if (stock < minQty) {
+      else if (effectiveStockLimit < item.quantity) {
+        // Use effective min quantity to prevent hard-deleting approved items
+        const effectiveMinQty = approvedReq ? 1 : (item.product.minOrderQuantity || 1);
+        if (effectiveStockLimit < effectiveMinQty) {
           await db.cartItem.delete({ where: { id: item.id } });
           messages.push(`"${item.product.productName}" was removed from your cart because the remaining stock is below the minimum order quantity.`);
         } else {
           await db.cartItem.update({
             where: { id: item.id },
-            data: { quantity: stock }
+            data: { quantity: effectiveStockLimit }
           });
-          messages.push(`Quantity for "${item.product.productName}" was reduced to ${stock} ${item.product.unit} due to available stock changes.`);
+          messages.push(`Quantity for "${item.product.productName}" was reduced to ${effectiveStockLimit} ${item.product.unit} to match your approved mediation limit or stock availability.`);
         }
       }
     }

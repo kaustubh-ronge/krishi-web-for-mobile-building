@@ -460,9 +460,9 @@ export default function AdminCommandCenterClient({
          const sf = statusFilter.toUpperCase();
          items = items.filter(item => {
             if (activeView === 'orders' || activeView === 'disputes' || activeView === 'cancelled_orders') {
-               return (item.orderStatus?.toUpperCase() === sf || 
-                       item.paymentStatus?.toUpperCase() === sf || 
-                       item.payoutStatus?.toUpperCase() === sf);
+               return (item.orderStatus?.toUpperCase() === sf ||
+                  item.paymentStatus?.toUpperCase() === sf ||
+                  item.payoutStatus?.toUpperCase() === sf);
             }
             const status = (item.status || item.approvalStatus || item.sellingStatus || (item.isRead ? 'CLOSED' : 'OPEN'))?.toUpperCase();
             return status === sf;
@@ -1520,194 +1520,194 @@ export default function AdminCommandCenterClient({
                               <div className="space-y-10">
                                  <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><UserCircle2 className="h-7 w-7 text-indigo-600" /> Buyer Node</h5>
                                  <Card className="rounded-3xl border-0 bg-white p-8 space-y-6 shadow-xl shadow-slate-200/50">
-                                 <div className="flex items-center gap-5">
-                                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl shadow-inner">BN</div>
-                                    <div className="flex flex-col">
-                                       <div className="flex items-center gap-2">
-                                          <span className="text-2xl font-black text-slate-900 leading-tight">{selectedOrder.buyerName}</span>
-                                          <RoleBadge role={selectedOrder.buyerRole} />
-                                       </div>
-                                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{selectedOrder.buyerEmail}</span>
-                                    </div>
-                                 </div>
-                                 <div className="pt-6 border-t border-slate-50 grid grid-cols-2 gap-8">
-                                    <div><p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">Contact Node</p><p className="text-sm font-black text-slate-700">{selectedOrder.buyerPhone}</p></div>
-                                    <div><p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">Delivery Target</p><p className="text-[11px] font-bold text-slate-600 line-clamp-2 leading-relaxed">{selectedOrder.shippingAddress}</p></div>
-                                 </div>
-                              </Card>
-
-                              <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><ClipboardEdit className="h-7 w-7 text-indigo-600" /> Financial Breakdown</h5>
-                              <Card className="rounded-3xl border-0 bg-white p-8 space-y-8 shadow-xl shadow-slate-200/50">
-                                 <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Seller Payment</span><span className="text-xl font-black text-slate-900">₹{sNum(selectedOrder.sellerAmount)}</span></div>
-                                 <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Delivery Fee</span><span className="text-xl font-black text-slate-900">₹{sNum(selectedOrder.deliveryFee)}</span></div>
-                                 <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Platform Profit</span><span className="text-xl font-black text-indigo-600">₹{sNum(selectedOrder.platformFee)}</span></div>
-                                 <div className="pt-8 border-t border-slate-100 flex justify-between items-center"><span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Verified Ledger</span><Badge className="bg-emerald-500 text-white border-0 text-[10px] px-4 py-1.5 font-black uppercase rounded-xl shadow-lg shadow-emerald-500/20 tracking-widest">100% Correct</Badge></div>
-                              </Card>
-
-                              <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><ShoppingCart className="h-7 w-7 text-purple-600" /> Purchased Items</h5>
-                              <div className="space-y-6">
-                                 {selectedOrder.items?.map((it, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                                       <div className="flex items-center gap-6">
-                                          <div className="w-20 h-20 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 flex items-center justify-center shadow-inner">
-                                             {it.image ? <img src={it.image} alt={it.productName} className="w-full h-full object-cover" /> : <ImageIcon className="h-8 w-8 text-slate-300" />}
+                                    <div className="flex items-center gap-5">
+                                       <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl shadow-inner">BN</div>
+                                       <div className="flex flex-col">
+                                          <div className="flex items-center gap-2">
+                                             <span className="text-2xl font-black text-slate-900 leading-tight">{selectedOrder.buyerName}</span>
+                                             <RoleBadge role={selectedOrder.buyerRole} />
                                           </div>
-                                          <div className="flex flex-col">
-                                             <span className="text-xl font-black text-slate-900 tracking-tight">{it.productName}</span>
-                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{it.quantity} {it.unit} sold</span>
-                                                {it.deliveryChargeAtPurchase > 0 && (
-                                                   <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[8px] px-2 py-0.5 font-black uppercase rounded-md">
-                                                      + Delivery: ₹{it.deliveryChargeAtPurchase}/{it.unit}
-                                                   </Badge>
-                                                )}
+                                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{selectedOrder.buyerEmail}</span>
+                                       </div>
+                                    </div>
+                                    <div className="pt-6 border-t border-slate-50 grid grid-cols-2 gap-8">
+                                       <div><p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">Contact Node</p><p className="text-sm font-black text-slate-700">{selectedOrder.buyerPhone}</p></div>
+                                       <div><p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">Delivery Target</p><p className="text-[11px] font-bold text-slate-600 line-clamp-2 leading-relaxed">{selectedOrder.shippingAddress}</p></div>
+                                    </div>
+                                 </Card>
+
+                                 <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><ClipboardEdit className="h-7 w-7 text-indigo-600" /> Financial Breakdown</h5>
+                                 <Card className="rounded-3xl border-0 bg-white p-8 space-y-8 shadow-xl shadow-slate-200/50">
+                                    <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Seller Payment</span><span className="text-xl font-black text-slate-900">₹{sNum(selectedOrder.sellerAmount)}</span></div>
+                                    <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Delivery Fee</span><span className="text-xl font-black text-slate-900">₹{sNum(selectedOrder.deliveryFee)}</span></div>
+                                    <div className="flex justify-between items-center"><span className="text-[11px] font-black text-slate-400 uppercase">Platform Profit</span><span className="text-xl font-black text-indigo-600">₹{sNum(selectedOrder.platformFee)}</span></div>
+                                    <div className="pt-8 border-t border-slate-100 flex justify-between items-center"><span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Verified Ledger</span><Badge className="bg-emerald-500 text-white border-0 text-[10px] px-4 py-1.5 font-black uppercase rounded-xl shadow-lg shadow-emerald-500/20 tracking-widest">100% Correct</Badge></div>
+                                 </Card>
+
+                                 <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><ShoppingCart className="h-7 w-7 text-purple-600" /> Purchased Items</h5>
+                                 <div className="space-y-6">
+                                    {selectedOrder.items?.map((it, idx) => (
+                                       <div key={idx} className="flex items-center justify-between p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                          <div className="flex items-center gap-6">
+                                             <div className="w-20 h-20 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 flex items-center justify-center shadow-inner">
+                                                {it.image ? <img src={it.image} alt={it.productName} className="w-full h-full object-cover" /> : <ImageIcon className="h-8 w-8 text-slate-300" />}
+                                             </div>
+                                             <div className="flex flex-col">
+                                                <span className="text-xl font-black text-slate-900 tracking-tight">{it.productName}</span>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                   <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{it.quantity} {it.unit} sold</span>
+                                                   {it.deliveryChargeAtPurchase > 0 && (
+                                                      <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[8px] px-2 py-0.5 font-black uppercase rounded-md">
+                                                         + Delivery: ₹{it.deliveryChargeAtPurchase}/{it.unit}
+                                                      </Badge>
+                                                   )}
+                                                </div>
                                              </div>
                                           </div>
                                        </div>
-                                    </div>
-                                 ))}
+                                    ))}
+                                 </div>
                               </div>
-                           </div>
 
-                           <div className="space-y-10">
-                              <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><Banknote className="h-7 w-7 text-emerald-600" /> Payout Intelligence</h5>
-                              <div className="space-y-8">
-                                 {selectedOrder.sellers?.map((sObj, sIdx) => (
-                                    <Card key={sIdx} className="rounded-[2.5rem] border-0 bg-slate-950 text-white shadow-2xl relative overflow-hidden group flex flex-col">
-                                       <div className="p-8 pb-4 relative z-10 space-y-6">
-                                          <div className="flex justify-between items-start gap-4">
-                                             <div className="flex items-center gap-4 min-w-0">
-                                                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-white font-black text-2xl border border-white/20 shrink-0 shadow-inner">
-                                                   {sObj.name?.[0]}
-                                                </div>
-                                                <div className="min-w-0">
-                                                   <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Target Node</p>
-                                                   <div className="flex flex-wrap items-center gap-2">
-                                                      <p className="text-lg font-black text-white tracking-tight truncate max-w-[200px]">{sObj.name || 'Unknown Seller'}</p>
-                                                      <RoleBadge role={sObj.role} size="xs" />
-                                                      <Badge className={`text-[7px] font-black uppercase px-2 py-0.5 border-0 rounded-md shadow-sm ${sObj.isDisabled ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}`}>
-                                                         {sObj.isDisabled ? 'BLOCKED' : 'ACTIVE'}
-                                                      </Badge>
+                              <div className="space-y-10">
+                                 <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><Banknote className="h-7 w-7 text-emerald-600" /> Payout Intelligence</h5>
+                                 <div className="space-y-8">
+                                    {selectedOrder.sellers?.map((sObj, sIdx) => (
+                                       <Card key={sIdx} className="rounded-[2.5rem] border-0 bg-slate-950 text-white shadow-2xl relative overflow-hidden group flex flex-col">
+                                          <div className="p-8 pb-4 relative z-10 space-y-6">
+                                             <div className="flex justify-between items-start gap-4">
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                   <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-white font-black text-2xl border border-white/20 shrink-0 shadow-inner">
+                                                      {sObj.name?.[0]}
+                                                   </div>
+                                                   <div className="min-w-0">
+                                                      <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Target Node</p>
+                                                      <div className="flex flex-wrap items-center gap-2">
+                                                         <p className="text-lg font-black text-white tracking-tight truncate max-w-[200px]">{sObj.name || 'Unknown Seller'}</p>
+                                                         <RoleBadge role={sObj.role} size="xs" />
+                                                         <Badge className={`text-[7px] font-black uppercase px-2 py-0.5 border-0 rounded-md shadow-sm ${sObj.isDisabled ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}`}>
+                                                            {sObj.isDisabled ? 'BLOCKED' : 'ACTIVE'}
+                                                         </Badge>
+                                                      </div>
                                                    </div>
                                                 </div>
-                                             </div>
-                                             <div className="text-right shrink-0">
-                                                <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Audit Total</p>
-                                                <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{sObj.totalEarned?.toLocaleString() || '0'}</p>
-                                             </div>
-                                          </div>
-
-                                          {/* FINANCIAL BREAKDOWN ROW */}
-                                          <div className="grid grid-cols-3 gap-4 p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
-                                             <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Products</p>
-                                                <p className="text-sm font-black text-white">₹{sObj.productTotal?.toLocaleString() || '0'}</p>
-                                             </div>
-                                             <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Base Logistics</p>
-                                                <p className="text-sm font-black text-indigo-400">₹{sObj.baseDeliveryTotal?.toLocaleString() || '0'}</p>
-                                             </div>
-                                             <div className="space-y-1">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">OOR Surcharge</p>
-                                                <p className="text-sm font-black text-amber-500">₹{sObj.oorSurchargeTotal?.toLocaleString() || '0'}</p>
-                                             </div>
-                                          </div>
-                                          
-                                          {!sObj.bankDetails?.accountNumber ? (
-                                             <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-4">
-                                                <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0" />
-                                                <div className="min-w-0">
-                                                   <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-none">Security Alert</p>
-                                                   <p className="text-[9px] text-rose-400 font-bold mt-1 leading-tight">No verified bank account. Funds locked.</p>
+                                                <div className="text-right shrink-0">
+                                                   <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Audit Total</p>
+                                                   <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{sObj.totalEarned?.toLocaleString() || '0'}</p>
                                                 </div>
-                                                <Button size="sm" variant="secondary" className="ml-auto h-8 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest shrink-0" onClick={() => window.open(`tel:${sObj.phone}`)}>Call Node</Button>
                                              </div>
-                                          ) : (
-                                             <div className="space-y-2">
-                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Verified Ledger Node</p>
-                                                <p className="text-xl font-mono font-black text-white tracking-[0.2em] bg-white/5 p-3 rounded-xl shadow-inner border border-white/5 break-all leading-tight">{sObj.bankDetails.accountNumber}</p>
+
+                                             {/* FINANCIAL BREAKDOWN ROW */}
+                                             <div className="grid grid-cols-3 gap-4 p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                                <div className="space-y-1">
+                                                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Products</p>
+                                                   <p className="text-sm font-black text-white">₹{sObj.productTotal?.toLocaleString() || '0'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Base Logistics</p>
+                                                   <p className="text-sm font-black text-indigo-400">₹{sObj.baseDeliveryTotal?.toLocaleString() || '0'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">OOR Surcharge</p>
+                                                   <p className="text-sm font-black text-amber-500">₹{sObj.oorSurchargeTotal?.toLocaleString() || '0'}</p>
+                                                </div>
+                                             </div>
+
+                                             {!sObj.bankDetails?.accountNumber ? (
+                                                <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-4">
+                                                   <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0" />
+                                                   <div className="min-w-0">
+                                                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-none">Security Alert</p>
+                                                      <p className="text-[9px] text-rose-400 font-bold mt-1 leading-tight">No verified bank account. Funds locked.</p>
+                                                   </div>
+                                                   <Button size="sm" variant="secondary" className="ml-auto h-8 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest shrink-0" onClick={() => window.open(`tel:${sObj.phone}`)}>Call Node</Button>
+                                                </div>
+                                             ) : (
+                                                <div className="space-y-2">
+                                                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Verified Ledger Node</p>
+                                                   <p className="text-xl font-mono font-black text-white tracking-[0.2em] bg-white/5 p-3 rounded-xl shadow-inner border border-white/5 break-all leading-tight">{sObj.bankDetails.accountNumber}</p>
+                                                </div>
+                                             )}
+                                             <div className="grid grid-cols-2 gap-6 border-t border-white/5 pt-6 pb-2">
+                                                <div><p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">Bank Branch</p><p className="text-xs font-black text-indigo-400 uppercase truncate">{sObj.bankDetails?.bankName || 'NOT SET'}</p></div>
+                                                <div><p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">IFSC Routing</p><p className="text-xs font-black text-emerald-400 uppercase font-mono">{sObj.bankDetails?.ifscCode || 'NOT SET'}</p></div>
+                                             </div>
+                                             <div className="pt-4 border-t border-white/5 space-y-1">
+                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                                   {sObj.bankDetails?.paymentType === 'TRANSACTION' ? 'Transaction ID' : 'UPI ID'}
+                                                </p>
+                                                <p className="text-sm font-black text-indigo-400 font-mono">{sObj.bankDetails?.upiId || 'NOT SET'}</p>
+                                             </div>
+
+                                             {/* ITEM BREAKDOWN */}
+                                             <div className="pt-4 border-t border-white/5">
+                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Payout Contributions</p>
+                                                <div className="space-y-3">
+                                                   {sObj.items?.map((item, iIdx) => (
+                                                      <div key={iIdx} className="flex justify-between items-center text-[10px] bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors">
+                                                         <div className="min-w-0 mr-2">
+                                                            <p className="font-black text-white truncate">{item.productName}</p>
+                                                            <p className="text-slate-500 font-bold uppercase tracking-tight">{item.quantity} {item.unit} @ ₹{item.price}/{item.unit}</p>
+                                                         </div>
+                                                         <div className="text-right shrink-0">
+                                                            <p className="font-black text-white">₹{item.total?.toLocaleString()}</p>
+                                                            {(item.baseDelivery > 0 || item.oorSurcharge > 0) && (
+                                                               <p className="text-[8px] font-bold text-indigo-400">
+                                                                  + Logistics: ₹{(item.baseDelivery + item.oorSurcharge).toLocaleString()}
+                                                               </p>
+                                                            )}
+                                                         </div>
+                                                      </div>
+                                                   ))}
+                                                </div>
+                                             </div>
+                                          </div>
+                                          <div className="absolute -bottom-10 -right-10 opacity-5 pointer-events-none"><Banknote className="h-48 w-48" /></div>
+                                       </Card>
+                                    ))}
+                                 </div>
+
+                                 <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><Truck className="h-7 w-7 text-indigo-400" /> Logistics Status</h5>
+                                 {(!selectedOrder.deliveryPartners || selectedOrder.deliveryPartners.length === 0) ? (
+                                    <div className="p-12 bg-slate-100 border-4 border-dashed border-slate-200 rounded-[3rem] flex flex-col items-center justify-center text-center">
+                                       <AlertTriangle className="h-10 w-10 text-amber-500 mb-4" />
+                                       <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Awaiting Logistics Node</p>
+                                       <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest leading-relaxed">This order is in the seller's queue.<br />No delivery partner assigned yet.</p>
+                                    </div>
+                                 ) : selectedOrder.deliveryPartners.map((dp, idx) => (
+                                    <div key={idx} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm flex items-center justify-between animate-in zoom-in-95 duration-500">
+                                       <div className="flex items-center gap-6">
+                                          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl shadow-inner">DP</div>
+                                          <div className="flex flex-col">
+                                             <span className="text-xl font-black text-slate-900 tracking-tight">{dp.partnerName}</span>
+                                             <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Partner Payout:</span>
+                                                {dp.partnerPaymentReceived ? <Badge className="bg-emerald-500 text-white border-0 text-[8px] px-3 py-1 font-black uppercase tracking-widest">VERIFIED PAID</Badge> : <Badge className="bg-amber-500 text-white border-0 text-[8px] px-3 py-1 font-black uppercase tracking-widest">PENDING</Badge>}
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div className="flex flex-col items-end gap-3">
+                                          <div className="text-right">
+                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fee</p>
+                                             <span className="text-3xl font-black text-slate-900 tracking-tighter">₹{dp.totalPrice}</span>
+                                          </div>
+                                          {dp.bankDetails && (
+                                             <div className="text-right space-y-1">
+                                                <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">
+                                                   {dp.bankDetails.paymentType === 'TRANSACTION' ? 'Transaction ID' : 'UPI ID'}
+                                                </p>
+                                                <p className="text-[10px] font-black text-slate-600 font-mono">{dp.bankDetails.upiId || 'N/A'}</p>
                                              </div>
                                           )}
-                                          <div className="grid grid-cols-2 gap-6 border-t border-white/5 pt-6 pb-2">
-                                             <div><p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">Bank Branch</p><p className="text-xs font-black text-indigo-400 uppercase truncate">{sObj.bankDetails?.bankName || 'NOT SET'}</p></div>
-                                             <div><p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-1">IFSC Routing</p><p className="text-xs font-black text-emerald-400 uppercase font-mono">{sObj.bankDetails?.ifscCode || 'NOT SET'}</p></div>
-                                          </div>
-                                          <div className="pt-4 border-t border-white/5 space-y-1">
-                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                                                {sObj.bankDetails?.paymentType === 'TRANSACTION' ? 'Transaction ID' : 'UPI ID'}
-                                             </p>
-                                             <p className="text-sm font-black text-indigo-400 font-mono">{sObj.bankDetails?.upiId || 'NOT SET'}</p>
-                                          </div>
-
-                                          {/* ITEM BREAKDOWN */}
-                                          <div className="pt-4 border-t border-white/5">
-                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Payout Contributions</p>
-                                             <div className="space-y-3">
-                                                {sObj.items?.map((item, iIdx) => (
-                                                   <div key={iIdx} className="flex justify-between items-center text-[10px] bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors">
-                                                      <div className="min-w-0 mr-2">
-                                                         <p className="font-black text-white truncate">{item.productName}</p>
-                                                         <p className="text-slate-500 font-bold uppercase tracking-tight">{item.quantity} {item.unit} @ ₹{item.price}/{item.unit}</p>
-                                                      </div>
-                                                      <div className="text-right shrink-0">
-                                                         <p className="font-black text-white">₹{item.total?.toLocaleString()}</p>
-                                                         {(item.baseDelivery > 0 || item.oorSurcharge > 0) && (
-                                                            <p className="text-[8px] font-bold text-indigo-400">
-                                                               + Logistics: ₹{(item.baseDelivery + item.oorSurcharge).toLocaleString()}
-                                                            </p>
-                                                         )}
-                                                      </div>
-                                                   </div>
-                                                ))}
-                                             </div>
-                                          </div>
                                        </div>
-                                       <div className="absolute -bottom-10 -right-10 opacity-5 pointer-events-none"><Banknote className="h-48 w-48" /></div>
-                                    </Card>
+                                    </div>
                                  ))}
                               </div>
-
-                              <h5 className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest"><Truck className="h-7 w-7 text-indigo-400" /> Logistics Status</h5>
-                              {(!selectedOrder.deliveryPartners || selectedOrder.deliveryPartners.length === 0) ? (
-                                 <div className="p-12 bg-slate-100 border-4 border-dashed border-slate-200 rounded-[3rem] flex flex-col items-center justify-center text-center">
-                                    <AlertTriangle className="h-10 w-10 text-amber-500 mb-4" />
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-widest">Awaiting Logistics Node</p>
-                                    <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest leading-relaxed">This order is in the seller's queue.<br />No delivery partner assigned yet.</p>
-                                 </div>
-                              ) : selectedOrder.deliveryPartners.map((dp, idx) => (
-                                 <div key={idx} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm flex items-center justify-between animate-in zoom-in-95 duration-500">
-                                    <div className="flex items-center gap-6">
-                                       <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl shadow-inner">DP</div>
-                                       <div className="flex flex-col">
-                                          <span className="text-xl font-black text-slate-900 tracking-tight">{dp.partnerName}</span>
-                                          <div className="flex items-center gap-2 mt-2">
-                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Partner Payout:</span>
-                                             {dp.partnerPaymentReceived ? <Badge className="bg-emerald-500 text-white border-0 text-[8px] px-3 py-1 font-black uppercase tracking-widest">VERIFIED PAID</Badge> : <Badge className="bg-amber-500 text-white border-0 text-[8px] px-3 py-1 font-black uppercase tracking-widest">PENDING</Badge>}
-                                          </div>
-                                       </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-3">
-                                       <div className="text-right">
-                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fee</p>
-                                          <span className="text-3xl font-black text-slate-900 tracking-tighter">₹{dp.totalPrice}</span>
-                                       </div>
-                                       {dp.bankDetails && (
-                                          <div className="text-right space-y-1">
-                                             <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">
-                                                {dp.bankDetails.paymentType === 'TRANSACTION' ? 'Transaction ID' : 'UPI ID'}
-                                             </p>
-                                             <p className="text-[10px] font-black text-slate-600 font-mono">{dp.bankDetails.upiId || 'N/A'}</p>
-                                          </div>
-                                       )}
-                                    </div>
-                                 </div>
-                              ))}
                            </div>
-                        </div>
-                     </>
-                  )}
+                        </>
+                     )}
+                  </div>
                </div>
-            </div>
 
                <DialogFooter className="p-6 bg-white border-t border-slate-200 flex flex-col gap-6 shrink-0">
                   <div className="flex gap-6 w-full">

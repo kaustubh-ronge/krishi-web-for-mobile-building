@@ -3,6 +3,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { attachDynamicStock } from "@/actions/products";
 
 // Track recently viewed product
 export async function trackProductView(productId) {
@@ -103,7 +104,9 @@ export async function getRecentlyViewedProducts() {
       .filter(Boolean)
       .slice(0, 10); // Return max 10
 
-    return { success: true, data: sortedProducts };
+    const enrichedProducts = await attachDynamicStock(sortedProducts);
+
+    return { success: true, data: enrichedProducts };
   } catch (error) {
     console.error("Get Recently Viewed Error:", error);
     return { success: false, data: [] };
@@ -216,7 +219,9 @@ export async function getProductsEnhanced({
         : { createdAt: 'desc' }
     });
 
-    return { success: true, data: products };
+    const enrichedProducts = await attachDynamicStock(products);
+
+    return { success: true, data: enrichedProducts };
   } catch (error) {
     console.error("Get Products Enhanced Error:", error);
     return { success: false, data: [], error: "Failed to fetch products" };

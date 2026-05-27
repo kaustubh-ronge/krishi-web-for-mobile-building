@@ -361,6 +361,11 @@ export async function initiateCheckout(params) {
       return { success: false, error: "No items selected for checkout" };
     }
 
+    // Fetch approved requests up front to safely override MOQ for out-of-range mediated items
+    const { getUserSpecialDeliveryRequests } = await import('./special-delivery');
+    const { data: allRequests } = await getUserSpecialDeliveryRequests();
+    const approvedRequests = allRequests?.filter(r => r.status === 'APPROVED') || [];
+
     for (const it of checkoutItems) {
       const p = it.product;
       if (dbUser.farmerProfile && p.farmerId === dbUser.farmerProfile.id) {
@@ -370,9 +375,13 @@ export async function initiateCheckout(params) {
         return { success: false, error: `Critical: ${p.productName} is your own product. You cannot purchase it.` };
       }
 
-      const minQty = p.minOrderQuantity || 1;
-      if (it.quantity < minQty) {
-        return { success: false, error: `Error: ${p.productName} requires a minimum order of ${minQty} ${p.unit}.` };
+      const approvedReq = approvedRequests.find(r => r.productId === p.id);
+      
+      // If there is an approved special delivery request, the MOQ is bypassed (min becomes 1)
+      const effectiveMinQty = approvedReq ? 1 : (p.minOrderQuantity || 1);
+      
+      if (it.quantity < effectiveMinQty) {
+        return { success: false, error: `Error: ${p.productName} requires a minimum order of ${effectiveMinQty} ${p.unit}.` };
       }
     }
 
@@ -413,11 +422,6 @@ export async function initiateCheckout(params) {
     const itemDeliveryChargeMap = new Map(); // Track per-item delivery fees
     const { getOSRMDistance } = await import('@/lib/utils');
     const { getAvailableDeliveryBoys } = await import('./delivery-job');
-    const { getUserSpecialDeliveryRequests } = await import('./special-delivery');
-
-    // Fetch approved requests for this user once
-    const { data: allRequests } = await getUserSpecialDeliveryRequests();
-    const approvedRequests = allRequests?.filter(r => r.status === 'APPROVED') || [];
 
     for (const seller of sellerMap.values()) {
       let sellerProfile;

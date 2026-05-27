@@ -182,12 +182,20 @@ export async function updateSpecialDeliveryStatus(requestId, status, negotiatedF
         }
 
         const updated = await db.$transaction(async (tx) => {
+            const currentRequest = await tx.specialDeliveryRequest.findUnique({
+                where: { id: requestId },
+                include: { product: { select: { unit: true } } }
+            });
+
+            if (!currentRequest) throw new Error("Request not found");
+
             const request = await tx.specialDeliveryRequest.update({
                 where: { id: requestId },
                 data: {
                     status: status,
                     negotiatedFee: negotiatedFee ? parseFloat(negotiatedFee) : null,
                     quantity: adminQuantity ? parseFloat(adminQuantity) : undefined, // Admin can override quantity
+                    unit: currentRequest.product?.unit || undefined, // Save the unit of that particular product
                     adminNotes: notes,
                     rejectedAt: status === 'REJECTED' ? new Date() : null,
                     approvedAt: status === 'APPROVED' ? new Date() : null
@@ -196,7 +204,6 @@ export async function updateSpecialDeliveryStatus(requestId, status, negotiatedF
 
             // --- NEW: Immediate UI Feedback ---
             // If the admin rejects the request, instantly remove the item from the buyer's cart
-            // so they don't have to wait for the cron job sweep to clean it up.
             if (status === 'REJECTED') {
                 await tx.cartItem.deleteMany({
                     where: {
@@ -204,6 +211,22 @@ export async function updateSpecialDeliveryStatus(requestId, status, negotiatedF
                         productId: request.productId
                     }
                 });
+            } else if (status === 'APPROVED' && request.quantity) {
+                // If the admin approves a quantity lower than what's in the cart, instantly clamp it
+                const existingCartItems = await tx.cartItem.findMany({
+                    where: {
+                        cart: { userId: request.userId },
+                        productId: request.productId
+                    }
+                });
+                for (const ci of existingCartItems) {
+                    if (ci.quantity > request.quantity) {
+                        await tx.cartItem.update({
+                            where: { id: ci.id },
+                            data: { quantity: request.quantity }
+                        });
+                    }
+                }
             }
             return request;
         });

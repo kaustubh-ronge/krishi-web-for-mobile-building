@@ -257,6 +257,7 @@ export async function getExportableUsers(roleType, {
 }
 
 import { buildProductFilters } from "@/lib/adminUtils";
+import { attachDynamicStock } from "@/actions/products";
 
 export async function getExportableProducts({ 
   filters = {}, 
@@ -293,10 +294,12 @@ export async function getExportableProducts({
       orderItems: undefined
     }));
 
+    const productsWithStock = await attachDynamicStock(mapped);
+
     return { 
       success: true, 
       data: {
-        products: JSON.parse(JSON.stringify(mapped)),
+        products: JSON.parse(JSON.stringify(productsWithStock)),
         total,
         totalPages: Math.ceil(total / limit)
       }

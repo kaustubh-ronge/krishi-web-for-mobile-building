@@ -1905,10 +1905,10 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
         }
     }, [unserviceableIds, specialRequests]);
 
-    // 2.2 Auto-sync quantities with approved limits
+    // 2.2 Auto-sync quantities with approved limits (only active, non-soft-removed approvals)
     useEffect(() => {
         approvedItems.forEach(item => {
-            const approval = specialRequests.find(r => r.productId === item.product.id && r.status === 'APPROVED' && !r.isConsumed);
+            const approval = specialRequests.find(r => r.productId === item.product.id && r.status === 'APPROVED' && !r.isConsumed && !r.isRemovedFromCart);
             if (approval && item.quantity > approval.quantity) {
                 // Force sync quantity down to approved limit
                 updateQuantity(item.id, approval.quantity);
@@ -1920,25 +1920,32 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
     }, [cartItems.length, specialRequests]);
 
     // Derived state: Categorize items for UI
+    // NOTE: Exclude soft-removed approvals (isRemovedFromCart=true) from all active lookups.
+    // These items were removed from cart UI but their approval reservation is still alive on backend.
     const rejectedItems = cartItems.filter(it =>
-        specialRequests.some(r => r.productId === it.product.id && r.status === 'REJECTED')
+        specialRequests.some(r => r.productId === it.product.id && r.status === 'REJECTED' && !r.isRemovedFromCart)
     );
     const approvedItems = cartItems.filter(it =>
-        specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED')
+        specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED' && !r.isRemovedFromCart)
     );
 
-    // Items that are out of range but NOT approved
+    // Soft-removed approved items: approval alive on backend, visually hidden from cart
+    const softRemovedApprovals = specialRequests.filter(r =>
+        r.isRemovedFromCart && !r.isConsumed && r.status === 'APPROVED'
+    );
+
+    // Items that are out of range but NOT approved (or approval is soft-removed)
     const unserviceableWaitlist = cartItems.filter(it =>
         unserviceableIds.includes(it.id) &&
-        !specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED')
+        !specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED' && !r.isRemovedFromCart)
     );
 
     // Derived state: Is any SELECTED item currently blocking checkout?
-    // We only care about selected items that are unserviceable AND not approved
+    // We only care about selected items that are unserviceable AND not approved (or soft-removed)
     const selectedUnserviceableItems = cartItems.filter(it =>
         selectedItemIds.includes(it.id) &&
         unserviceableIds.includes(it.id) &&
-        !specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED')
+        !specialRequests.some(r => r.productId === it.product.id && r.status === 'APPROVED' && !r.isRemovedFromCart)
     );
 
     const isOutOfRange = selectedUnserviceableItems.length > 0;
@@ -1984,8 +1991,8 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
         setSelectedItemIds(prev => {
             const isCurrentlySelected = prev.includes(id);
             const item = cartItems.find(it => it.id === id);
-            const isRejected = specialRequests.some(r => r.productId === item?.product?.id && r.status === 'REJECTED');
-            const isApproved = specialRequests.some(r => r.productId === item?.product?.id && r.status === 'APPROVED');
+            const isRejected = specialRequests.some(r => r.productId === item?.product?.id && r.status === 'REJECTED' && !r.isRemovedFromCart);
+            const isApproved = specialRequests.some(r => r.productId === item?.product?.id && r.status === 'APPROVED' && !r.isRemovedFromCart);
 
             if (!isCurrentlySelected) {
                 if (isRejected) {
@@ -2114,10 +2121,10 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
         }
 
         const newQty = item.quantity + change;
-        const minQty = item.product.minOrderQuantity || 1;
+        const effectiveMinQty = activeApproval ? 1 : (item.product.minOrderQuantity || 1);
 
-        if (newQty < minQty) {
-            toast.error(`Minimum order for ${item.product.productName} is ${minQty} ${item.product.unit}`);
+        if (newQty < effectiveMinQty) {
+            toast.error(`Minimum order for ${item.product.productName} is ${effectiveMinQty} ${item.product.unit}`);
             return;
         }
 
@@ -2920,6 +2927,65 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
                                                     );
                                                 })}
                                             </AnimatePresence>
+                                        </div>
+                                    )}
+
+                                    {/* --- SAVED APPROVALS (Soft-Removed) --- */}
+                                    {softRemovedApprovals.length > 0 && (
+                                        <div className="space-y-6 pt-10 border-t-2 border-slate-100 border-dashed w-full">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 gap-4 w-full">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                                                        <CheckCircle2 className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter">Saved Approvals</h3>
+                                                        <p className="text-[11px] text-slate-500 font-medium">Removed from cart — approval &amp; reservation still active</p>
+                                                    </div>
+                                                </div>
+                                                <Badge variant="outline" className="border-emerald-200 text-emerald-700 font-black text-[9px] uppercase bg-emerald-50 px-3 py-1 self-start sm:self-auto shrink-0">Reservation Active</Badge>
+                                            </div>
+
+                                            {softRemovedApprovals.map(req => {
+                                                const expiryDate = new Date(new Date(req.approvedAt || req.updatedAt).getTime() + 10 * 24 * 60 * 60 * 1000);
+                                                return (
+                                                    <div key={req.id} className="p-4 sm:p-6 bg-white border-2 border-emerald-100 rounded-[2rem] shadow-sm relative overflow-hidden w-full">
+                                                        <div className="mb-4 p-3 sm:p-4 bg-emerald-50 border border-emerald-100 rounded-2xl w-full">
+                                                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full">
+                                                                <div className="flex items-start gap-3 min-w-0">
+                                                                    <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                                                                        <Truck className="h-4 w-4 text-emerald-600" />
+                                                                    </div>
+                                                                    <div className="space-y-1 min-w-0">
+                                                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-800 break-words">Special Delivery Approved — Saved for Later</p>
+                                                                        <p className="text-[11px] font-medium text-emerald-700 leading-tight break-words">
+                                                                            <strong>{req.product?.productName}</strong> · {req.quantity} {req.unit} approved
+                                                                        </p>
+                                                                        {req.negotiatedFee != null && (
+                                                                            <p className="text-[10px] text-emerald-600">Negotiated delivery: ₹{req.negotiatedFee}/unit</p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex flex-row sm:flex-col items-center sm:items-end shrink-0 gap-2">
+                                                                    <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest sm:mb-1 shrink-0">Expires In</p>
+                                                                    <div className="px-3 py-1 bg-white rounded-lg border border-emerald-100 font-black text-[10px] text-emerald-700 shadow-sm shrink-0">
+                                                                        <CountdownTimer expiryDate={expiryDate} onExpire={() => router.refresh()} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-500 mb-4 leading-relaxed px-1">
+                                                            You removed this from your cart. Your approval and stock reservation are still active. Re-add to cart anytime before the timer expires.
+                                                        </p>
+                                                        <Button
+                                                            asChild
+                                                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl px-6 h-11"
+                                                        >
+                                                            <a href={`/marketplace/product/${req.productId}`}>Re-add to Cart</a>
+                                                        </Button>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     )}
 

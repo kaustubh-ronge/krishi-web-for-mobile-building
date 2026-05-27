@@ -5,6 +5,48 @@ import { revalidatePath, unstable_cache, revalidateTag } from "next/cache";
 import { db } from "@/lib/prisma";
 import { sanitizeContent } from "@/lib/utils";
 
+// --- DYNAMIC STOCK RESERVATION HELPER ---
+export async function attachDynamicStock(listings) {
+  if (!listings || listings.length === 0) return listings;
+  
+  const isArray = Array.isArray(listings);
+  const items = isArray ? listings : [listings];
+  const listingIds = items.map(l => l.id);
+  
+  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+  const activeApprovals = await db.specialDeliveryRequest.groupBy({
+    by: ['productId'],
+    where: {
+      productId: { in: listingIds },
+      status: 'APPROVED',
+      isConsumed: false,
+      OR: [
+          { approvedAt: { gte: tenDaysAgo } },
+          { approvedAt: null, updatedAt: { gte: tenDaysAgo } }
+      ]
+    },
+    _sum: { quantity: true }
+  });
+
+  const approvalMap = {};
+  activeApprovals.forEach(a => {
+    approvalMap[a.productId] = a._sum.quantity || 0;
+  });
+
+  const enriched = items.map(item => {
+    const reservedStock = approvalMap[item.id] || 0;
+    // Ensure sellable stock doesn't go below 0 if DB is briefly out of sync
+    const availableSellableStock = Math.max(0, item.availableStock - reservedStock);
+    return {
+      ...item,
+      reservedStock,
+      availableSellableStock
+    };
+  });
+
+  return isArray ? enriched : enriched[0];
+}
+
 /**
  * 1. CREATE LISTING (Handles Farmer & Agent)
  */
@@ -186,7 +228,8 @@ export async function getMyListings() {
       orderBy: { createdAt: 'desc' }
     });
 
-    return { success: true, data: listings };
+    const enrichedListings = await attachDynamicStock(listings);
+    return { success: true, data: enrichedListings };
   } catch (err) {
     return { success: false, error: "Failed to fetch listings" };
   }
@@ -216,7 +259,8 @@ export async function getProductById(listingId) {
 
     if (!isOwner) return { success: false, error: "Unauthorized access to listing details." };
 
-    return { success: true, data: listing };
+    const enrichedListing = await attachDynamicStock(listing);
+    return { success: true, data: enrichedListing };
   } catch (err) {
     return { success: false, error: "Database error" };
   }
@@ -477,9 +521,11 @@ export async function getMarketplaceListings({
       db.productListing.count({ where: whereClause })
     ]);
 
+    const enrichedListings = await attachDynamicStock(listings);
+
     return { 
       success: true, 
-      data: listings, 
+      data: enrichedListings, 
       pagination: {
         total: totalCount,
         pages: Math.ceil(totalCount / limit),
@@ -540,7 +586,8 @@ export async function getProductDetail(listingId) {
 
     if (!product) return { success: false, error: "Product not found" };
 
-    return { success: true, data: product };
+    const enrichedProduct = await attachDynamicStock(product);
+    return { success: true, data: enrichedProduct };
   } catch (err) {
     return { success: false, error: "Database error" };
   }

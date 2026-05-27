@@ -43,6 +43,10 @@ export default function ProductCard({ product, index, userRole = "none", userId 
     ? new Date(product.harvestDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
     : null;
 
+  const displayStock = product.availableSellableStock !== undefined 
+    ? product.availableSellableStock 
+    : (product.availableStock || 0);
+
   return (
     <>
       <motion.div
@@ -89,19 +93,19 @@ export default function ProductCard({ product, index, userRole = "none", userId 
                 <Leaf className="h-3 w-3 mr-1" />
                 {isFarmer ? "Farm Fresh" : "Verified"}
               </Badge>
-              {product.availableStock === 1 && (
+              {displayStock === 1 && (
                 <Badge className="bg-red-600 text-white border-0 shadow-lg px-3 py-1 text-xs font-black animate-bounce">
                   <Flame className="h-3 w-3 mr-1" />
                   LAST ITEM
                 </Badge>
               )}
-              {product.availableStock > 1 && product.availableStock <= 10 && (
+              {displayStock > 1 && displayStock <= 10 && (
                 <Badge className="bg-orange-500 text-white border-0 shadow-lg px-3 py-1 text-xs font-semibold animate-pulse">
                   <Zap className="h-3 w-3 mr-1" />
-                  Only {product.availableStock} Left
+                  Only {displayStock} Left
                 </Badge>
               )}
-              {product.availableStock <= 0 && (
+              {displayStock <= 0 && (
                 <Badge className="bg-gray-800 text-white border-0 shadow-lg px-3 py-1 text-xs font-black">
                   SOLD OUT
                 </Badge>
@@ -125,10 +129,10 @@ export default function ProductCard({ product, index, userRole = "none", userId 
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex justify-between items-end text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-medium opacity-80">Available</p>
-                <p className="text-sm font-bold">{product.availableStock} {product.unit}</p>
+                <p className="text-sm font-bold">{displayStock} {product.unit}</p>
               </div>
-              <Badge className={product.availableStock > 0 ? 'bg-green-500' : 'bg-red-500'}>
-                {product.availableStock > 0 ? 'In Stock' : 'Sold Out'}
+              <Badge className={displayStock > 0 ? 'bg-green-500' : 'bg-red-500'}>
+                {displayStock > 0 ? 'In Stock' : 'Sold Out'}
               </Badge>
             </div>
           </div>

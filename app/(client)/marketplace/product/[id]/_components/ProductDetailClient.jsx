@@ -48,7 +48,15 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
   // --- CART SYNC ---
   const { cartItems } = useCartStore();
   const currentQtyInCart = cartItems.find(item => item.productId === product.id)?.quantity || 0;
-  const remainingAllowedQty = approvedQuantity !== null ? Math.max(0, approvedQuantity - currentQtyInCart) : product.availableStock;
+  
+  // Inventory Reservation Logic
+  const physicalStock = product.availableStock || 0;
+  const sellableStock = product.availableSellableStock !== undefined ? product.availableSellableStock : physicalStock;
+  const maxAllowedQtyForUser = isBypassed ? physicalStock : sellableStock;
+  
+  const remainingAllowedQty = approvedQuantity !== null 
+      ? Math.max(0, approvedQuantity - currentQtyInCart) 
+      : sellableStock;
 
   // Track product view & Fetch dynamic fee
   useEffect(() => {
@@ -139,7 +147,7 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
     const { createSpecialDeliveryRequest } = await import("@/actions/special-delivery");
     setIsAdding(true);
     const sellerId = product.farmerId || product.agentId;
-    const res = await createSpecialDeliveryRequest(product.id, parseFloat(qty), sellerId);
+    const res = await createSpecialDeliveryRequest(product.id, parseFloat(qty), sellerId, product.unit);
     setIsAdding(false);
     
     if (res.success) {
@@ -191,14 +199,15 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
       return;
     }
 
-    if (qty > product.availableStock) {
-      toast.error(`Only ${product.availableStock} ${product.unit} available.`, {
+    if (qty > maxAllowedQtyForUser) {
+      toast.error(`Only ${maxAllowedQtyForUser} ${product.unit} available.`, {
         icon: <AlertCircle className="h-5 w-5" />,
       });
       return;
     }
-    if (qty < (product.minOrderQuantity || 1)) {
-      toast.error(`Minimum order is ${product.minOrderQuantity} ${product.unit}`);
+    const effectiveMinQty = (isBypassed && approvedQuantity !== null) ? 1 : (product.minOrderQuantity || 1);
+    if (qty < effectiveMinQty) {
+      toast.error(`Minimum order is ${effectiveMinQty} ${product.unit}`);
       return;
     }
 
@@ -337,10 +346,10 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                   <div className="flex items-center justify-between text-white">
                     <div>
                       <p className="text-xs uppercase tracking-wider opacity-80">Available Stock</p>
-                      <p className="text-2xl font-bold">{product.availableStock} <span className="text-lg">{product.unit}</span></p>
+                      <p className="text-2xl font-bold">{sellableStock} <span className="text-lg">{product.unit}</span></p>
                     </div>
-                    <Badge className={`${product.availableStock > 0 ? 'bg-green-500' : 'bg-red-500'} text-white border-0`}>
-                      {product.availableStock > 0 ? 'In Stock' : 'Out of Stock'}
+                    <Badge className={`${maxAllowedQtyForUser > 0 ? 'bg-green-500' : 'bg-red-500'} text-white border-0`}>
+                      {maxAllowedQtyForUser > 0 ? 'In Stock' : 'Out of Stock'}
                     </Badge>
                   </div>
                 </div>
@@ -501,10 +510,10 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                         </div>
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Stock Available</p>
-                          <p className="text-lg font-bold text-gray-900">{product.availableStock} {product.unit}</p>
+                          <p className="text-lg font-bold text-gray-900">{sellableStock} {product.unit}</p>
                         </div>
                       </div>
-                      {product.availableStock > 0 && (
+                      {maxAllowedQtyForUser > 0 && (
                         <Badge className="bg-green-500 text-white px-3 py-1">
                           <CheckCircle2 className="h-3 w-3 mr-1" /> Available
                         </Badge>
@@ -571,22 +580,22 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                           onChange={(e) => {
                             const val = Number(e.target.value);
                             const min = product.minOrderQuantity || 1;
-                            const max = (isBypassed && approvedQuantity !== null) ? Math.min(product.availableStock, remainingAllowedQty) : product.availableStock;
+                            const max = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
                             setQty(Math.min(Math.max(val, min), max));
                           }}
                           min={product.minOrderQuantity || 1}
-                          max={(isBypassed && approvedQuantity !== null) ? Math.min(product.availableStock, remainingAllowedQty) : product.availableStock}
+                          max={(isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock}
                           className="w-24 h-12 text-center text-xl font-bold border-0 bg-transparent focus:ring-0"
                         />
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => {
-                             const max = (isBypassed && approvedQuantity !== null) ? Math.min(product.availableStock, remainingAllowedQty) : product.availableStock;
+                             const max = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
                              setQty(Math.min(max, qty + 1));
                           }}
                           className="p-2 rounded-xl hover:bg-white hover:shadow-md transition-all disabled:opacity-30"
-                          disabled={qty >= ((isBypassed && approvedQuantity !== null) ? Math.min(product.availableStock, remainingAllowedQty) : product.availableStock)}
+                          disabled={qty >= ((isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock)}
                         >
                           <Plus className="h-5 w-5 text-gray-700" />
                         </motion.button>
@@ -677,8 +686,8 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                       <>
                         <Button
                           onClick={handleAddToCart}
-                          disabled={product.availableStock <= 0 || isAdding || isFeeLoading || (userRole !== 'none' && (!userLat || !userLng)) || (isBypassed && approvedQuantity !== null && remainingAllowedQty <= 0)}
-                           className={`w-full h-14 text-lg font-black shadow-2xl transition-all duration-500 rounded-2xl ${product.availableStock > 0
+                          disabled={maxAllowedQtyForUser <= 0 || isAdding || isFeeLoading || (userRole !== 'none' && (!userLat || !userLng)) || (isBypassed && approvedQuantity !== null && remainingAllowedQty <= 0)}
+                           className={`w-full h-14 text-lg font-black shadow-2xl transition-all duration-500 rounded-2xl ${maxAllowedQtyForUser > 0
                                ? (userRole === 'none')
                                  ? `bg-gradient-to-r ${themeGradient} text-white hover:scale-[1.02]`
                                  : (isOutOfRange && !isBypassed && !hasRequested || !userLat || !userLng)
@@ -717,7 +726,7 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                           ) : (
                             <span className="flex items-center gap-2">
                               <ShoppingCart className="h-6 w-6" />
-                              {product.availableStock > 0 
+                              {maxAllowedQtyForUser > 0 
                                 ? (isOutOfRange && !isBypassed && !hasRequested) ? "Awaiting Request" : "Add to Cart" 
                                 : "Out of Stock"}
                               <ChevronRight className="h-5 w-5 ml-auto" />
