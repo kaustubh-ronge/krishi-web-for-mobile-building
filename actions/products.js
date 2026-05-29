@@ -11,30 +11,9 @@ export async function attachDynamicStock(listings) {
   
   const isArray = Array.isArray(listings);
   const items = isArray ? listings : [listings];
-  const listingIds = items.map(l => l.id);
   
-  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
-  const activeApprovals = await db.specialDeliveryRequest.groupBy({
-    by: ['productId'],
-    where: {
-      productId: { in: listingIds },
-      status: 'APPROVED',
-      isConsumed: false,
-      OR: [
-          { approvedAt: { gte: tenDaysAgo } },
-          { approvedAt: null, updatedAt: { gte: tenDaysAgo } }
-      ]
-    },
-    _sum: { quantity: true }
-  });
-
-  const approvalMap = {};
-  activeApprovals.forEach(a => {
-    approvalMap[a.productId] = a._sum.quantity || 0;
-  });
-
   const enriched = items.map(item => {
-    const reservedStock = approvalMap[item.id] || 0;
+    const reservedStock = item.reservedStock || 0;
     // Ensure sellable stock doesn't go below 0 if DB is briefly out of sync
     const availableSellableStock = Math.max(0, item.availableStock - reservedStock);
     return {

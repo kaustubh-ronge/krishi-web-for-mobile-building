@@ -54,6 +54,14 @@ export async function createSpecialDeliveryRequest(productId, quantity, sellerId
             }
 
             // Update existing record (Re-request)
+            // If it was previously approved and held stock, release that stock before rewriting to PENDING
+            if (existing.status === 'APPROVED' && !existing.isConsumed) {
+                await db.productListing.update({
+                    where: { id: existing.productId },
+                    data: { reservedStock: { decrement: existing.quantity } }
+                });
+            }
+
             const updated = await db.specialDeliveryRequest.update({
                 where: { id: existing.id },
                 data: {
@@ -202,6 +210,32 @@ export async function updateSpecialDeliveryStatus(requestId, status, negotiatedF
                 }
             });
 
+            // --- NEW: RESERVED STOCK CACHING ---
+            const newQuantity = adminQuantity ? parseFloat(adminQuantity) : currentRequest.quantity;
+            
+            // If it WAS NOT approved, but IS NOW approved
+            if (currentRequest.status !== 'APPROVED' && status === 'APPROVED') {
+                await tx.productListing.update({
+                    where: { id: currentRequest.productId },
+                    data: { reservedStock: { increment: newQuantity } }
+                });
+            } 
+            // If it WAS approved, but IS NOW rejected/pending/etc
+            else if (currentRequest.status === 'APPROVED' && status !== 'APPROVED' && !currentRequest.isConsumed) {
+                await tx.productListing.update({
+                    where: { id: currentRequest.productId },
+                    data: { reservedStock: { decrement: currentRequest.quantity } }
+                });
+            }
+            // If it WAS approved, and IS STILL approved, but admin changed quantity
+            else if (currentRequest.status === 'APPROVED' && status === 'APPROVED' && adminQuantity !== null && newQuantity !== currentRequest.quantity && !currentRequest.isConsumed) {
+                 const diff = newQuantity - currentRequest.quantity;
+                 await tx.productListing.update({
+                    where: { id: currentRequest.productId },
+                    data: { reservedStock: { increment: diff } }
+                });
+            }
+
             // --- NEW: Immediate UI Feedback ---
             // If the admin rejects the request, instantly remove the item from the buyer's cart
             if (status === 'REJECTED') {
@@ -299,11 +333,22 @@ export async function deleteSpecialDeliveryRequest(requestId) {
         const user = await currentUser();
         if (!user) throw new Error("Unauthorized");
 
-        await db.specialDeliveryRequest.delete({
-            where: {
-                id: requestId,
-                userId: user.id
-            }
+        const existing = await db.specialDeliveryRequest.findUnique({
+            where: { id: requestId, userId: user.id }
+        });
+
+        if (!existing) throw new Error("Request not found");
+
+        await db.$transaction(async (tx) => {
+             if (existing.status === 'APPROVED' && !existing.isConsumed) {
+                 await tx.productListing.update({
+                     where: { id: existing.productId },
+                     data: { reservedStock: { decrement: existing.quantity } }
+                 });
+             }
+             await tx.specialDeliveryRequest.delete({
+                 where: { id: requestId }
+             });
         });
 
         revalidatePath("/cart");
@@ -335,11 +380,21 @@ export async function sweepExpiredSpecialDeliveries() {
         });
 
         if (expiredApprovals.length > 0) {
-            await db.specialDeliveryRequest.updateMany({
-                where: { id: { in: expiredApprovals.map(r => r.id) } },
-                data: { status: 'EXPIRED' }
+            await db.$transaction(async (tx) => {
+                await tx.specialDeliveryRequest.updateMany({
+                    where: { id: { in: expiredApprovals.map(r => r.id) } },
+                    data: { status: 'EXPIRED' }
+                });
+                
+                // Release reserved stock for each expired approval
+                for (const req of expiredApprovals) {
+                    await tx.productListing.update({
+                        where: { id: req.productId },
+                        data: { reservedStock: { decrement: req.quantity } }
+                    });
+                }
             });
-            console.log(`[CRON] Marked ${expiredApprovals.length} approvals as EXPIRED.`);
+            console.log(`[CRON] Marked ${expiredApprovals.length} approvals as EXPIRED and released stock.`);
         }
 
         // 2. Sweep 1-Hour Stale REJECTED Requests & remove from carts

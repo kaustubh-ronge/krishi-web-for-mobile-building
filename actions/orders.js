@@ -706,6 +706,30 @@ export async function initiateCheckout(params) {
           });
         }
       }
+      // ─── CONSUME SPECIAL DELIVERY REQUESTS FOR COD ───
+      const productIds = orderWithItems.items.map(it => it.productId);
+      const consumedRequests = await db.specialDeliveryRequest.findMany({
+        where: {
+          userId: user.id,
+          productId: { in: productIds },
+          status: 'APPROVED',
+          isConsumed: false
+        }
+      });
+
+      if (consumedRequests.length > 0) {
+        await db.specialDeliveryRequest.updateMany({
+          where: { id: { in: consumedRequests.map(r => r.id) } },
+          data: { isConsumed: true }
+        });
+
+        for (const req of consumedRequests) {
+          await db.productListing.update({
+            where: { id: req.productId },
+            data: { reservedStock: { decrement: req.quantity } }
+          });
+        }
+      }
 
       return { success: true, data: { orderId: created.id, isCod: true, resumed: !!created.isResumed, isCollision: !!created.isCollision } };
 
@@ -899,17 +923,28 @@ export async function confirmOrderPayment({ orderId, razorpayPaymentId, razorpay
     // ─── CONSUME SPECIAL DELIVERY REQUESTS ───
     // Once order is paid, approved mediation requests are consumed
     const productIds = orderWithSellers.items.map(it => it.productId);
-    await db.specialDeliveryRequest.updateMany({
+    const consumedRequests = await db.specialDeliveryRequest.findMany({
       where: {
         userId: orderWithSellers.buyerId,
         productId: { in: productIds },
         status: 'APPROVED',
         isConsumed: false
-      },
-      data: {
-        isConsumed: true
       }
     });
+
+    if (consumedRequests.length > 0) {
+      await db.specialDeliveryRequest.updateMany({
+        where: { id: { in: consumedRequests.map(r => r.id) } },
+        data: { isConsumed: true }
+      });
+
+      for (const req of consumedRequests) {
+        await db.productListing.update({
+          where: { id: req.productId },
+          data: { reservedStock: { decrement: req.quantity } }
+        });
+      }
+    }
 
     return { success: true };
 

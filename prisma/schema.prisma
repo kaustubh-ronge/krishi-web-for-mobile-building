@@ -182,6 +182,7 @@ model ProductListing {
 
   quantityLabel      String
   availableStock     Float
+  reservedStock      Float  @default(0) // New field!
   unit               String
   pricePerUnit       Float
   // Delivery charge per unit (can be 0)
