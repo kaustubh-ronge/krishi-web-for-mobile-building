@@ -107,6 +107,18 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
     }
   }, [product.id, userLat, userLng]);
 
+  // Ensure qty is clamped when bypassing or limits change
+  useEffect(() => {
+    const effectiveMinQty = (isBypassed && approvedQuantity !== null) ? 1 : (product.minOrderQuantity || 1);
+    const effectiveMaxQty = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
+    if (qty < effectiveMinQty) setQty(effectiveMinQty);
+    else if (qty > effectiveMaxQty) setQty(effectiveMaxQty);
+    else if (isBypassed && qty === (product.minOrderQuantity || 1)) {
+      // If they were stuck at the old minOrderQuantity, drop it to 1 when bypassed
+      setQty(1);
+    }
+  }, [isBypassed, approvedQuantity, physicalStock, remainingAllowedQty, sellableStock, product.minOrderQuantity, qty]);
+
   const isFarmer = product.sellerType === 'farmer';
   const seller = isFarmer ? product.farmer : product.agent;
   const sellerName = isFarmer ? seller?.name : (seller?.companyName || seller?.name);
@@ -565,40 +577,44 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                     </label>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 bg-gray-50 rounded-2xl p-1.5 border border-gray-200">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => setQty(Math.max(product.minOrderQuantity || 1, qty - 1))}
-                          className="p-2 rounded-xl hover:bg-white hover:shadow-md transition-all disabled:opacity-30"
-                          disabled={qty <= (product.minOrderQuantity || 1)}
-                        >
-                          <Minus className="h-5 w-5 text-gray-700" />
-                        </motion.button>
-                        <Input
-                          type="number"
-                          value={qty}
-                          onChange={(e) => {
-                            const val = Number(e.target.value);
-                            const min = product.minOrderQuantity || 1;
-                            const max = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
-                            setQty(Math.min(Math.max(val, min), max));
-                          }}
-                          min={product.minOrderQuantity || 1}
-                          max={(isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock}
-                          className="w-24 h-12 text-center text-xl font-bold border-0 bg-transparent focus:ring-0"
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => {
-                             const max = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
-                             setQty(Math.min(max, qty + 1));
-                          }}
-                          className="p-2 rounded-xl hover:bg-white hover:shadow-md transition-all disabled:opacity-30"
-                          disabled={qty >= ((isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock)}
-                        >
-                          <Plus className="h-5 w-5 text-gray-700" />
-                        </motion.button>
+                        {(() => {
+                          const effectiveMinQty = (isBypassed && approvedQuantity !== null) ? 1 : (product.minOrderQuantity || 1);
+                          const effectiveMaxQty = (isBypassed && approvedQuantity !== null) ? Math.min(physicalStock, remainingAllowedQty) : sellableStock;
+                          
+                          return (
+                            <>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setQty(Math.max(effectiveMinQty, qty - 1))}
+                                className="p-2 rounded-xl hover:bg-white hover:shadow-md transition-all disabled:opacity-30"
+                                disabled={qty <= effectiveMinQty || effectiveMaxQty === 0}
+                              >
+                                <Minus className="h-5 w-5 text-gray-700" />
+                              </motion.button>
+                              <Input
+                                type="number"
+                                value={qty}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  setQty(Math.min(Math.max(val, effectiveMinQty), effectiveMaxQty));
+                                }}
+                                min={effectiveMinQty}
+                                max={effectiveMaxQty}
+                                className="w-24 h-12 text-center text-xl font-bold border-0 bg-transparent focus:ring-0"
+                              />
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setQty(Math.min(effectiveMaxQty, qty + 1))}
+                                className="p-2 rounded-xl hover:bg-white hover:shadow-md transition-all disabled:opacity-30"
+                                disabled={qty >= effectiveMaxQty}
+                              >
+                                <Plus className="h-5 w-5 text-gray-700" />
+                              </motion.button>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex-1 text-right">
