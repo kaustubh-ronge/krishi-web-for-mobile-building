@@ -1,6 +1,6 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, auth } from "@clerk/nextjs/server";
 import { revalidatePath, unstable_cache, revalidateTag } from "next/cache";
 import { db } from "@/lib/prisma";
 import { sanitizeContent } from "@/lib/utils";
@@ -429,13 +429,14 @@ export async function getMarketplaceListings({
   region = "",
   district = ""
 } = {}) {
-  let user = null;
+  let userId = null;
   
   try {
     try {
-      user = await currentUser();
+      const session = await auth();
+      userId = session?.userId;
     } catch (e) {
-      console.warn("getMarketplaceListings: failed to fetch currentUser, proceeding as guest.");
+      console.warn("getMarketplaceListings: failed to fetch auth, proceeding as guest.");
     }
     
     const skip = (page - 1) * limit;
@@ -475,9 +476,9 @@ export async function getMarketplaceListings({
       whereClause.AND.push({ OR: geoConditions });
     }
 
-    if (user) {
+    if (userId) {
       const dbUser = await db.user.findUnique({
-        where: { id: user.id },
+        where: { id: userId },
         select: { 
           farmerProfile: { select: { id: true } }, 
           agentProfile: { select: { id: true } } 

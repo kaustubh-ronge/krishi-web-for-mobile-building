@@ -228,6 +228,7 @@ model ProductListing {
   @@index([category])
   @@index([farmerId])
   @@index([agentId])
+  @@index([sellerType])
   @@map("product_listings")
 }
 
