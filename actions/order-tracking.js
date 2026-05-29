@@ -19,7 +19,6 @@ export const getOrderTracking = cache(async (orderId) => {
 
     return { success: true, data: tracking };
   } catch (error) {
-    console.error("Get Order Tracking Error:", error);
     return { success: false, error: "Failed to fetch tracking" };
   }
 });

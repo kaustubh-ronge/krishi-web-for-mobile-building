@@ -1761,9 +1761,7 @@ export default function CartClient({ initialCart, user, initialUnserviceableIds 
                     fetchCart();
                     router.refresh();
                 }
-            } catch (err) {
-                console.error("Reconciliation error:", err);
-            }
+            } catch (err) {}
         };
         runReconciliation();
     }, []);

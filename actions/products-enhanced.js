@@ -37,7 +37,6 @@ export async function trackProductView(productId) {
 
     return { success: true };
   } catch (error) {
-    console.error("Track Product View Error:", error);
     return { success: false };
   }
 }
@@ -108,7 +107,6 @@ export async function getRecentlyViewedProducts() {
 
     return { success: true, data: enrichedProducts };
   } catch (error) {
-    console.error("Get Recently Viewed Error:", error);
     return { success: false, data: [] };
   }
 }
@@ -223,7 +221,6 @@ export async function getProductsEnhanced({
 
     return { success: true, data: enrichedProducts };
   } catch (error) {
-    console.error("Get Products Enhanced Error:", error);
     return { success: false, data: [], error: "Failed to fetch products" };
   }
 }

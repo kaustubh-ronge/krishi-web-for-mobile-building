@@ -87,41 +87,39 @@ export const FilterBar = ({
            </Button>
          </div>
        </div>
-
-       {/* Quick Status Filter */}
-       {statusOptions.length > 0 && (
-         <div className="flex items-center gap-4 overflow-x-auto pb-2 custom-scrollbar">
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Quick Status:</span>
-           <div className="flex gap-2">
-             <button
-               onClick={() => onStatusChange('ALL')}
-               className={cn(
-                 "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2",
-                 activeFilters.status === 'ALL' || !activeFilters.status
-                   ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
-                   : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-slate-600'
-               )}
-             >
-               All
-             </button>
-             {statusOptions.map((opt) => (
-               <button
-                 key={opt.value}
-                 onClick={() => onStatusChange(opt.value)}
-                 className={cn(
-                   "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2",
-                   activeFilters.status === opt.value 
-                     ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
-                     : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-slate-600'
-                 )}
-               >
-                 {opt.label}
-               </button>
-             ))}
-           </div>
-         </div>
-       )}
-
+      {/* Quick Status Filter */}
+      {statusOptions.length > 0 && (
+        <div className="flex items-center gap-4 overflow-x-auto pb-2 custom-scrollbar">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Quick Status:</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onStatusChange('ALL')}
+              className={cn(
+                "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2",
+                activeFilters.status === 'ALL' || !activeFilters.status
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
+                  : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-slate-600'
+              )}
+            >
+              All
+            </button>
+            {statusOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => onStatusChange(opt.value)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2",
+                  activeFilters.status === opt.value 
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg' 
+                    : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100 hover:text-slate-600'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Active Filter Chips */}
       {activeCount > 0 && (
         <div className="flex flex-wrap gap-2 pt-2 animate-in fade-in slide-in-from-top-1 duration-300">

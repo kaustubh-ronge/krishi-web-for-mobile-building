@@ -11,7 +11,6 @@ export async function GET(req) {
     }
     return NextResponse.json({ success: true, data: result.data || [] });
   } catch (error) {
-    console.error("Mobile API getUserPendingOrders Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

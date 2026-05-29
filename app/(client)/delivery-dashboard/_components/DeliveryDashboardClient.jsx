@@ -140,7 +140,7 @@ export default function DeliveryDashboardClient({
         await updateLiveLocation(activeJob.id, latitude, longitude);
         lastLocationUpdate.current = now;
       },
-      (error) => console.error("Geolocation error:", error.message),
+      (error) => undefined,
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 
@@ -222,9 +222,7 @@ export default function DeliveryDashboardClient({
         });
         lat = position.coords.latitude;
         lng = position.coords.longitude;
-      } catch (err) {
-        console.warn("Location capture failed:", err);
-      }
+      } catch (err) {}
     }
 
     const res = await updateDeliveryJobStatus(jobId, status, "", lat, lng);
@@ -260,9 +258,7 @@ export default function DeliveryDashboardClient({
       });
       lat = position.coords.latitude;
       lng = position.coords.longitude;
-    } catch (err) {
-      console.warn("Location capture failed during OTP verification:", err);
-    }
+    } catch (err) {}
 
     const res = await completeDeliveryWithOtp(currentJobId, otpValue, lat, lng, deliveryMethod, deliveryPaymentStatus);
     if (res.success) {
@@ -703,7 +699,6 @@ export default function DeliveryDashboardClient({
           className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-blue-200/20 to-indigo-300/10 rounded-full blur-3xl"
         />
       </div>
-
       {/* Top Navigation Bar */}
       <nav className="relative z-20 bg-white/80 backdrop-blur-xl border-b-2 border-gray-200/50 sticky top-0 shadow-lg">
         <div className="container mx-auto px-4 max-w-6xl h-16 flex items-center justify-between">
@@ -757,7 +752,6 @@ export default function DeliveryDashboardClient({
           </div>
         </div>
       </nav>
-
       <div className="relative z-10 container mx-auto px-4 max-w-6xl mt-8 pb-20">
         {profileExists && user?.deliveryProfile && (user.deliveryProfile.lat === null || user.deliveryProfile.lng === null || user.deliveryProfile.lat === undefined || user.deliveryProfile.lng === undefined) && (
           <motion.div
@@ -1143,7 +1137,6 @@ export default function DeliveryDashboardClient({
           </div>
         )}
       </div>
-
       {/* OTP Dialog - Premium */}
       <Dialog open={isOtpDialogOpen} onOpenChange={setIsOtpDialogOpen}>
         <DialogContent className="sm:max-w-[420px] rounded-3xl border-0 shadow-2xl p-0 overflow-hidden bg-white">
@@ -1264,7 +1257,6 @@ export default function DeliveryDashboardClient({
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Settings Dialog rendered in Main Dashboard as well */}
       {profileDialogContent}
       {/* Job Details Modal - Premium Overlay */}

@@ -364,8 +364,6 @@ export async function deleteSpecialDeliveryRequest(requestId) {
  */
 export async function sweepExpiredSpecialDeliveries() {
     try {
-        console.log("[CRON] Starting special delivery sweep...");
-
         // 1. Sweep 10-Day EXPIRED Approvals
         const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
         const expiredApprovals = await db.specialDeliveryRequest.findMany({
@@ -394,7 +392,6 @@ export async function sweepExpiredSpecialDeliveries() {
                     });
                 }
             });
-            console.log(`[CRON] Marked ${expiredApprovals.length} approvals as EXPIRED and released stock.`);
         }
 
         // 2. Sweep 1-Hour Stale REJECTED Requests & remove from carts
@@ -424,10 +421,8 @@ export async function sweepExpiredSpecialDeliveries() {
             });
         }
 
-        console.log("[CRON] Sweep completed successfully.");
         return apiResponse.success(null, "Sweep completed.");
     } catch (error) {
-        console.error("[CRON] Sweep failed:", error);
         return apiResponse.error(error.message);
     }
 }

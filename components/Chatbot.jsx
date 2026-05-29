@@ -213,7 +213,7 @@ export default function Chatbot() {
   const { messages, setMessages, stop, status, sendMessage } = useChat({
     api: '/api/chat',
     body: { language },
-    onError: err => console.error("Chat error:", err)
+    onError: err => undefined
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';

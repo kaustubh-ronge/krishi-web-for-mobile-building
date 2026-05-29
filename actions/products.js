@@ -147,7 +147,6 @@ export async function createProductListing(formData) {
     });
 
     if (recentlyCreated) {
-      console.warn(`[Products] Duplicate submission blocked for user ${user.id}`);
       return { success: true, duplicated: true }; // Return success so UI doesn't show error, but we blocked the duplicate
     }
 
@@ -165,7 +164,6 @@ export async function createProductListing(formData) {
       },
     });
   } catch (err) {
-    console.error("Create Error:", err);
     if (err.message && err.message.includes("too large")) {
       return { success: false, error: "Images too large." };
     }
@@ -354,7 +352,6 @@ export async function updateProductListing(listingId, formData) {
     });
 
   } catch (err) {
-    console.error("Update Error:", err);
     return { success: false, error: err.message || "Update failed" };
   }
 
@@ -435,9 +432,7 @@ export async function getMarketplaceListings({
     try {
       const session = await auth();
       userId = session?.userId;
-    } catch (e) {
-      console.warn("getMarketplaceListings: failed to fetch auth, proceeding as guest.");
-    }
+    } catch (e) {}
     
     const skip = (page - 1) * limit;
     
@@ -539,7 +534,6 @@ export async function getMarketplaceListings({
       }
     };
   } catch (err) {
-    console.error("Marketplace Error:", err);
     return { success: false, error: "Failed to load marketplace." };
   }
 }

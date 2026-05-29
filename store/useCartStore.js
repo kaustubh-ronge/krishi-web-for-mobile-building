@@ -23,9 +23,7 @@ export const useCartStore = create((set, get) => ({
         } else {
             set({ cartCount: 0, cartItems: [] });
         }
-    } catch (err) {
-        console.error("Cart fetch error:", err);
-    } finally {
+    } catch (err) {} finally {
         set({ isLoading: false });
     }
   },

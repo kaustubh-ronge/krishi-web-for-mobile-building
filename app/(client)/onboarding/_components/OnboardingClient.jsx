@@ -82,7 +82,6 @@ export default function OnboardingClient({ userRole }) {
       toast.error("Something went wrong", {
         description: "Please try again in a moment"
       });
-      console.error("Role selection error:", error);
     } finally {
       setIsLoading(false);
       setSelectedRole(null);

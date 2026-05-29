@@ -55,7 +55,6 @@ export async function createFarmerProfile(formData) {
   try {
     validatedData = farmerSchema.parse(formValues);
   } catch (error) {
-    console.error("ZOD VALIDATION ERROR:", error.issues || error);
     let errorMessage = "Validation failed.";
     if (error.errors && error.errors.length > 0) {
       errorMessage = error.errors[0].message;
@@ -133,7 +132,6 @@ export async function updateFarmerProfile(formData) {
   try {
     validatedData = farmerSchema.parse(formValues);
   } catch (error) {
-    console.error("ZOD VALIDATION ERROR:", error.issues || error);
     let errorMessage = "Validation failed.";
     if (error.errors && error.errors.length > 0) {
       errorMessage = error.errors[0].message;

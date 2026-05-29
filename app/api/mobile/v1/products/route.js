@@ -48,7 +48,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, data: result.data, pagination: result.pagination });
   } catch (error) {
-    console.error("Mobile API getMarketplaceListings Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -77,7 +76,6 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API createProductListing Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

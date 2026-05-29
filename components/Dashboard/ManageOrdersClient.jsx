@@ -84,9 +84,7 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
         });
         formData.append('lat', position.coords.latitude.toString());
         formData.append('lng', position.coords.longitude.toString());
-      } catch (err) {
-        console.warn("Location capture failed, proceeding without coordinates:", err);
-      }
+      } catch (err) {}
     }
 
     startTransition(async () => {
@@ -238,7 +236,6 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
           />
         ))}
       </div>
-
       <div className="relative container mx-auto px-4 py-12 max-w-7xl">
         {/* Premium Header */}
         <motion.div
@@ -355,7 +352,7 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
           </motion.div>
         ) : viewMode === "table" ? (
           /* Table View */
-          <motion.div
+          (<motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -477,10 +474,10 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
                 </TableBody>
               </Table>
             </div>
-          </motion.div>
+          </motion.div>)
         ) : (
           /* Cards View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredOrders.map((order, index) => (
               <motion.div
                 key={order.id}
@@ -528,7 +525,7 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
                 </div>
               </motion.div>
             ))}
-          </div>
+          </div>)
         )}
 
         {/* Pagination */}
@@ -567,7 +564,6 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
           </motion.div>
         )}
       </div>
-
       {/* Update Dialog - Premium */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
         <DialogContent className="sm:max-w-[650px] rounded-3xl border-0 shadow-2xl p-0 overflow-hidden bg-white">
@@ -792,7 +788,7 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
                     </Button>
                   ) : (
                     /* Partner Delivery Resend */
-                    (() => {
+                    ((() => {
                       const activeJob = selectedOrder.deliveryJobs?.find(j => ['PICKED_UP', 'IN_TRANSIT'].includes(j.status));
                       if (activeJob) {
                         return (
@@ -809,7 +805,7 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
                         );
                       }
                       return null;
-                    })()
+                    })())
                   )}
                   <p className="text-[10px] text-gray-400 text-center mt-2 uppercase font-black tracking-widest">Security Recovery Action</p>
                 </motion.div>
@@ -850,7 +846,6 @@ export default function ManageOrdersClient({ initialOrders, userType, total, has
           )}
         </DialogContent>
       </Dialog>
-
       {/* View Dialog - Premium */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden rounded-3xl border-0 shadow-2xl p-0 flex flex-col bg-white">

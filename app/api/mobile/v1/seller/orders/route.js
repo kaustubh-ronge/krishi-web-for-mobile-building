@@ -37,7 +37,6 @@ export async function GET(req) {
       hasMore: payload.hasMore,
     });
   } catch (error) {
-    console.error("Mobile API getSellerOrders Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -72,7 +71,6 @@ export async function PUT(req) {
 
     return NextResponse.json({ success: true, message: result.message || "Order updated successfully" });
   } catch (error) {
-    console.error("Mobile API updateOrderStatus Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

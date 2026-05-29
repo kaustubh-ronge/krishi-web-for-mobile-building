@@ -108,7 +108,6 @@ export async function createDeliveryProfile(formData) {
 
     return { success: true, profile };
   } catch (error) {
-    console.error("createDeliveryProfile Error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -190,7 +189,6 @@ export async function updateDeliveryProfile(formData) {
     revalidatePath("/delivery-dashboard");
     return { success: true, profile: updatedProfile };
   } catch (error) {
-    console.error("updateDeliveryProfile Error:", error);
     return { success: false, error: error.message };
   }
 }

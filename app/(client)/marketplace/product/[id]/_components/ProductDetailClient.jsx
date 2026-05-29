@@ -760,17 +760,10 @@ export default function ProductDetailClient({ product, userRole, userLat, userLn
                       </>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="mt-4">
                       <Button
                         variant="outline"
-                        onClick={() => setShowInquiry(true)}
-                        className={`h-12 font-semibold border-2 ${themeBorder} ${themeLightText} hover:${themeLightBg} transition-all`}
-                      >
-                        <MessageCircle className="mr-2 h-5 w-5" /> Contact Support
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-12 font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all"
+                        className="w-full h-12 font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all"
                         onClick={() => router.push('/support')}
                       >
                         <HelpCircle className="mr-2 h-5 w-5" /> Help Center

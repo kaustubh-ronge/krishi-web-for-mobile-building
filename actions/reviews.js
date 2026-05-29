@@ -120,7 +120,6 @@ export async function createReview(formData) {
     return { success: true, message: "Review submitted successfully!" };
 
   } catch (err) {
-    console.error("Review Error:", err);
-    return { success: false, error: "Failed to submit review." };
+      return { success: false, error: "Failed to submit review." };
   }
 }

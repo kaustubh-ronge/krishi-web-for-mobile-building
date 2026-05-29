@@ -9,9 +9,7 @@ export default async function CartPage() {
   let user;
   try {
     user = await currentUser();
-  } catch (error) {
-    console.error("CartPage Auth Error:", error);
-  }
+  } catch (error) {}
   if (!user) redirect("/sign-in");
 
   const { data: cart } = await getCart();

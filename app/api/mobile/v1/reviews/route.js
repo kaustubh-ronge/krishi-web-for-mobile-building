@@ -33,7 +33,6 @@ export async function POST(req) {
     
     return NextResponse.json({ success: res.success, data: res.message || res.error, error: res.error });
   } catch (error) {
-    console.error("Mobile Reviews POST Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

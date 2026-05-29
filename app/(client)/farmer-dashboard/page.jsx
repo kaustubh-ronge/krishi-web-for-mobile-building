@@ -7,7 +7,6 @@ export default async function FarmerDashboardPage() {
   const { user, profileExists, error } = await getUserWithProfileStatus('farmer');
 
   if (error || !user) {
-    console.error("FarmerDashboardPage Error:", error || "User not found");
     redirect('/sign-in');
   }
 

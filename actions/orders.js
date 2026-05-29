@@ -70,7 +70,6 @@ export const getSellerSales = cache(async () => {
     return { success: true, data: sales };
 
   } catch (err) {
-    console.error("Get Sales Error:", err);
     return { success: false, error: "Failed to fetch sales data" };
   }
 });
@@ -130,7 +129,6 @@ export const getBuyerOrders = cache(async () => {
     return { success: true, data: orders };
 
   } catch (err) {
-    console.error("Get Orders Error:", err);
     return { success: false, error: "Failed to fetch orders" };
   }
 });
@@ -156,7 +154,6 @@ export const getUserPendingOrders = async () => {
     });
     return { success: true, data: JSON.parse(JSON.stringify(orders)) };
   } catch (err) {
-    console.error("Fetch Pending Orders Error:", err);
     return { success: false, error: "Failed to fetch pending orders" };
   }
 };
@@ -197,7 +194,6 @@ export const cancelPendingOrder = async (orderId) => {
       return { success: true, message: "Pending order cancelled and stock restored." };
     });
   } catch (err) {
-    console.error("Cancel Pending Order Error:", err);
     return { success: false, error: err.message || "Failed to cancel order" };
   }
 };
@@ -287,7 +283,7 @@ export const cancelPaidOrderAsBuyer = async (orderId) => {
       if (result.sellerEmails?.length > 0) {
         const { sendOrderCancelledEmailToSeller } = await import("@/lib/email");
         for (const email of result.sellerEmails) {
-          await sendOrderCancelledEmailToSeller(email, orderId, "Buyer").catch(e => console.error("Email error:", e));
+          await sendOrderCancelledEmailToSeller(email, orderId, "Buyer").catch(e => undefined);
         }
       }
       // Send email to delivery partner if there's an active job
@@ -299,14 +295,13 @@ export const cancelPaidOrderAsBuyer = async (orderId) => {
         if (jobWithPartner?.deliveryBoy?.user?.email) {
           const { sendOrderCancelledEmailToDelivery } = await import("@/lib/email");
           await sendOrderCancelledEmailToDelivery(jobWithPartner.deliveryBoy.user.email, orderId)
-            .catch(e => console.error("Delivery email error:", e));
+            .catch(e => undefined);
         }
       }
     }
 
     return result;
   } catch (err) {
-    console.error("Cancel Paid Order Error:", err);
     return { success: false, error: err.message || "Failed to cancel order" };
   }
 };
@@ -576,7 +571,7 @@ export async function initiateCheckout(params) {
       }
     }
 
-    const created = existing || await db.$transaction(async (tx) => {
+    const created = existing || (await db.$transaction(async (tx) => {
       // Generate invoice number inside transaction for COD
       let invNum = null;
       if (addressData.paymentMethod === 'COD') {
@@ -588,9 +583,7 @@ export async function initiateCheckout(params) {
             const entropy = crypto.randomBytes(2).toString('hex').toUpperCase();
             invNum = `${generated}-${entropy}`;
           }
-        } catch (e) {
-          console.error("Generator error:", e);
-        }
+        } catch (e) {}
 
         if (!invNum) {
           const crypto = await import('crypto');
@@ -678,7 +671,7 @@ export async function initiateCheckout(params) {
 
     }, {
       timeout: 30000 // Increased to 30s
-    });
+    }));
 
     // Handle COD Success Flow
     if (addressData.paymentMethod === 'COD') {
@@ -768,7 +761,6 @@ export async function initiateCheckout(params) {
       const razorpayData = await response.json();
 
       if (!response.ok) {
-        console.error("Razorpay Order Creation Failed:", razorpayData);
         return {
           success: false,
           error: `Razorpay Error: ${razorpayData.error?.description || "Failed to create order"}`
@@ -797,7 +789,6 @@ export async function initiateCheckout(params) {
 
 
   } catch (err) {
-    console.error("initiateCheckout CRITICAL error:", err);
     return {
       success: false,
       error: err instanceof Error ? err.message : "Checkout initiation failed. Please try again."
@@ -853,9 +844,7 @@ export async function confirmOrderPayment({ orderId, razorpayPaymentId, razorpay
             const entropy = crypto.randomBytes(2).toString('hex').toUpperCase();
             invoiceNumber = `${generated}-${entropy}`;
           }
-        } catch (e) {
-          console.error("Custom generator error:", e);
-        }
+        } catch (e) {}
 
         if (!invoiceNumber) {
           invoiceNumber = `INV-${orderId.slice(-6).toUpperCase()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
@@ -957,7 +946,6 @@ export async function confirmOrderPayment({ orderId, razorpayPaymentId, razorpay
       return { success: false, error: 'Database busy. Payment received, but status update pending. Refresh page.' };
     }
 
-    console.error('confirmOrderPayment Error:', err);
     return { success: false, error: err.message || 'Payment confirmation failed' };
   }
 }
@@ -1104,7 +1092,6 @@ export async function calculateDynamicDeliveryFee(cartItemIds = [], targetLat, t
       unserviceableIds
     };
   } catch (err) {
-    console.error("Calculate Fee Error:", err);
     return { success: false, error: err.message };
   }
 }

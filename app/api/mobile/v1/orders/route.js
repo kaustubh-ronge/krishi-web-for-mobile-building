@@ -27,7 +27,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, data: orders });
   } catch (error) {
-    console.error("Mobile API getBuyerOrders Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -57,7 +56,6 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
 
   } catch (error) {
-    console.error("Mobile API orders POST Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

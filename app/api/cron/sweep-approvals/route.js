@@ -9,7 +9,6 @@ export async function GET(request) {
     // 1. Verify Vercel Cron Security
     const authHeader = request.headers.get('authorization');
     if (!process.env.CRON_SECRET) {
-        console.error("CRON_SECRET is not configured");
         return new NextResponse("Server misconfiguration", { status: 500 });
     }
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -25,7 +24,6 @@ export async function GET(request) {
             return NextResponse.json({ success: false, error: result.error }, { status: 500 });
         }
     } catch (error) {
-        console.error("Cron route error:", error);
         return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
     }
 }

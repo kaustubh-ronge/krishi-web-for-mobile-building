@@ -16,13 +16,11 @@ export async function selectRole(formData) {
     if (!user || !user.id) throw new Error("User not found via currentUser()");
     // Clerk user fetched from currentUser
   } catch (err) {
-    console.error("selectRole Error: currentUser() failed -", err);
     return { error: "Failed to get user information." };
   }
   const userId = user.id;
 
   if (role !== "farmer" && role !== "agent" && role !== "delivery") {
-    console.error(`selectRole Error: Invalid role detected - ${role}`);
     return { error: "Invalid role selected." };
   }
 
@@ -40,7 +38,6 @@ export async function selectRole(formData) {
       };
     }
   } catch (err) {
-    console.error("selectRole Error: Failed to check existing role -", err);
     return { error: "Failed to verify user role." };
   }
 
@@ -54,7 +51,6 @@ export async function selectRole(formData) {
       create: { id: userId, email: email, role: role },
     });
   } catch (err) {
-    console.error("selectRole Error: Database update failed -", err);
     return { error: "Database error updating role. Please try again." };
   }
 
@@ -64,14 +60,7 @@ export async function selectRole(formData) {
     await client.users.updateUserMetadata(userId, {
       publicMetadata: { role: role },
     });
-  } catch (err) {
-    console.error(
-      "selectRole Error: Clerk metadata update failed (Sync Error) -",
-      err
-    );
-    // We don't block the user if only Clerk sync fails, 
-    // as the DB role is what drives the dashboard access.
-  }
+  } catch (err) {}
 
   revalidatePath("/", "layout");
   return { success: true, redirectUrl: `/${role}-dashboard` };

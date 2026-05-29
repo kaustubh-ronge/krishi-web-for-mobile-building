@@ -14,7 +14,6 @@ export async function GET(req, { params }) {
 
     return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
-    console.error("Mobile API getProductDetail Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -43,7 +42,6 @@ export async function PUT(req, { params }) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API updateProductListing Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -61,7 +59,6 @@ export async function DELETE(req, { params }) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API deleteListing Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

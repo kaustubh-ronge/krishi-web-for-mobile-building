@@ -22,7 +22,6 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API createFarmerProfile Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -48,7 +47,6 @@ export async function PUT(req) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API updateFarmerProfile Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

@@ -58,7 +58,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: !res.error, data: res.data || res.error });
   } catch (error) {
-    console.error("Mobile Delivery Hire GET Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -78,7 +77,6 @@ export async function POST(req) {
     const res = await hireDeliveryBoy(orderId, deliveryBoyId, distance);
     return NextResponse.json({ success: !res.error, ...res });
   } catch (error) {
-    console.error("Mobile Delivery Hire POST Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

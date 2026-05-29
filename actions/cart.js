@@ -505,7 +505,6 @@ export const getCart = cache(async () => {
     if (!cart) return { success: true, data: { items: [] } };
     return { success: true, data: cart };
   } catch (error) {
-    console.error("Get Cart Error:", error);
     return { success: false, error: "Failed to fetch cart" };
   }
 });
@@ -657,7 +656,6 @@ export async function addToCart(productId, quantity) {
     revalidatePath('/cart');
     return { success: true };
   } catch (error) {
-    console.error("Add Cart Error:", error);
     return { success: false, error: "Failed to add to cart" };
   }
 }
@@ -715,7 +713,6 @@ export async function removeFromCart(cartItemId) {
     revalidatePath('/cart');
     return { success: true, wasApproved: !!activeApproval };
   } catch (error) {
-    console.log("Remove Cart Error:", error?.message || error);
     return { success: false, error: "Failed to remove item." };
   }
 }
@@ -774,7 +771,6 @@ export async function updateCartItemQuantity(cartItemId, newQuantity) {
     revalidatePath('/cart');
     return { success: true };
   } catch (error) {
-    console.error(`Update Qty Error:`, error);
     return { success: false, error: "Failed to update quantity" };
   }
 }
@@ -799,7 +795,6 @@ export async function clearCart() {
     await db.cartItem.deleteMany({ where: { cartId: cart.id } });
     return { success: true };
   } catch (err) {
-    console.error("Clear Cart Error:", err);
     return { success: false, error: "Failed to clear cart" };
   }
 }
@@ -865,7 +860,6 @@ export async function reconcileCartItems() {
 
     return { success: true, messages };
   } catch (err) {
-    console.error("Reconcile Cart Error:", err);
     return { success: false, messages: [] };
   }
 }

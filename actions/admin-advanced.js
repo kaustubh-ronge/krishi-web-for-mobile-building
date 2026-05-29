@@ -131,7 +131,6 @@ export async function getAdvancedAdminStats() {
     };
 
   } catch (error) {
-    console.error("[AdminAdvanced] Stats error:", error.message);
     return { success: false, error: error.message };
   }
 }
@@ -251,7 +250,6 @@ export async function getExportableUsers(roleType, {
     };
 
   } catch (error) {
-    console.error("[ExportUsers] Error:", error.message);
     return { success: false, error: error.message };
   }
 }
@@ -333,9 +331,7 @@ export async function toggleUserStatus(userId) {
           isDisabled: newStatus
         }
       });
-    } catch (clerkErr) {
-      console.error("[toggleUserStatus] Clerk sync failed (non-blocking):", clerkErr.message);
-    }
+    } catch (clerkErr) {}
 
     return { success: true, message: `User ${newStatus ? 'Disabled' : 'Enabled'} successfully.` };
   } catch (error) {

@@ -77,9 +77,7 @@ export default function LocationPicker({ value = {}, onChange }) {
           lng: longi 
         });
       }
-    } catch (err) {
-      console.error("[Reverse Geocoding] Failed:", err);
-    } finally {
+    } catch (err) {} finally {
       setIsGeocoding(false);
     }
   };
@@ -97,9 +95,7 @@ export default function LocationPicker({ value = {}, onChange }) {
           await reverseGeocode(newLat, newLng);
           toast.success("Location auto-detected", { description: "We updated your coordinates based on your device." });
         },
-        () => {
-          console.log("[LocationPicker] Geolocation declined or failed, staying on default.");
-        }
+        () => {}
       );
     }
   }, []);
@@ -158,7 +154,6 @@ export default function LocationPicker({ value = {}, onChange }) {
           notify({ city: c });
         }
       } catch (err) {
-        console.error("[City Geocoding] Failed:", err);
         notify({ city: c });
       } finally {
         setIsGeocoding(false);
@@ -201,9 +196,7 @@ export default function LocationPicker({ value = {}, onChange }) {
         setLng(newLng);
         notify({ lat: newLat, lng: newLng });
       }
-    } catch (err) {
-      console.error("[Geocoding] Failed:", err);
-    } finally {
+    } catch (err) {} finally {
       setIsGeocoding(false);
     }
   };

@@ -64,7 +64,6 @@ export async function GET(req) {
       },
     });
   } catch (error) {
-    console.error("Mobile API profiles/me Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

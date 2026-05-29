@@ -64,9 +64,7 @@ export default function HireDeliveryClient({
                 if (res.success) {
                     setPartners(res.data);
                 }
-            } catch (err) {
-                console.error("Fetch failed:", err);
-            } finally {
+            } catch (err) {} finally {
                 setIsLoading(false);
             }
         };

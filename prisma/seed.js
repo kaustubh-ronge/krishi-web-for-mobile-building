@@ -2,8 +2,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding distance-test data...');
-
   // 1. Create a Farmer in Delhi (Far away from Pandharpur)
   const delhiUser = await prisma.user.upsert({
     where: { email: 'delhi.farmer@test.com' },
@@ -53,17 +51,12 @@ async function main() {
       farmerId: delhiFarmer.id,
     },
   });
-
-  console.log('✅ Distance-test data seeded successfully!');
-  console.log('📍 Seller Location: Delhi (28.6139, 77.2090)');
-  console.log('📍 Product: Premium Delhi Grapes (Range: 50km)');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
+  process.exit(1);
+})
   .finally(async () => {
     await prisma.$disconnect();
   });

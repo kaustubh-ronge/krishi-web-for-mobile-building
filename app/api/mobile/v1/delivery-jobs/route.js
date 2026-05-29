@@ -51,7 +51,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, data: jobs });
   } catch (error) {
-    console.error("Mobile Delivery Jobs GET Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -85,7 +84,6 @@ export async function POST(req) {
 
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
   } catch (error) {
-    console.error("Mobile Delivery Jobs POST Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

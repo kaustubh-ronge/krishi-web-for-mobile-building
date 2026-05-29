@@ -222,7 +222,7 @@ export default function AdminCommandCenterClient({
          if (resO.success) setOrders(resO.data.orders || []);
          if (resPR.success) setPendingProfiles(resPR.data || []);
          if (resU.success) setUnreadSupportCount(resU.data || 0);
-      } catch (err) { console.error("Initial load failed:", err); } finally { setIsLoading(false); }
+      } catch (err) {} finally { setIsLoading(false); }
    };
 
    const fetchDirectoryData = async (view) => {
@@ -299,9 +299,7 @@ export default function AdminCommandCenterClient({
                setPagination({ total: res.data.total || 0, totalPages: res.data.totalPages || 1 });
             }
          }
-      } catch (err) {
-         console.error(`Fetch ${view} failed:`, err);
-      } finally {
+      } catch (err) {} finally {
          setIsLoading(false);
       }
    };
@@ -584,7 +582,6 @@ export default function AdminCommandCenterClient({
             deliveryPartners: deliveryPartners.length > 0 ? deliveryPartners : (order.deliveryPartners || [])
          });
       } catch (err) {
-         console.error("Audit fetch failed:", err);
          toast.error("Failed to load full audit data.");
       } finally {
          setIsLoadingDetails(false);
@@ -714,8 +711,6 @@ export default function AdminCommandCenterClient({
    return (
       <div className="flex h-screen overflow-hidden bg-slate-50 text-[13px] font-sans selection:bg-indigo-100 selection:text-indigo-900">
          <style>{CUSTOM_SCROLLBAR_CSS}</style>
-
-
          <aside className={`bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 shadow-2xl sticky top-0 h-screen shrink-0 z-50 ${isSidebarOpen ? "w-60" : "w-20"}`}>
             <div className="h-16 px-6 flex items-center justify-between border-b border-slate-800 shrink-0">
                {isSidebarOpen ? (
@@ -743,7 +738,6 @@ export default function AdminCommandCenterClient({
                ))}
             </div>
          </aside>
-
          <main className="flex-grow flex flex-col min-w-0 bg-slate-50">
             <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm sticky top-0 z-40">
                <div className="flex items-center gap-3">
@@ -1306,7 +1300,6 @@ export default function AdminCommandCenterClient({
                </div>
             </div>
          </main>
-
          {/* PRODUCT AUDIT MODAL */}
          <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
             <DialogContent className="sm:max-w-xl p-0 border-0 bg-white shadow-2xl rounded-[2.5rem] overflow-hidden max-h-[85vh] flex flex-col custom-scrollbar">
@@ -1346,7 +1339,6 @@ export default function AdminCommandCenterClient({
                </DialogFooter>
             </DialogContent>
          </Dialog>
-
          {/* PROFILE AUDIT MODAL */}
          <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
             <DialogContent className="sm:max-w-2xl p-0 border-0 bg-white shadow-2xl rounded-[2rem] overflow-hidden max-h-[85vh] flex flex-col custom-scrollbar">
@@ -1481,7 +1473,6 @@ export default function AdminCommandCenterClient({
                </DialogFooter>
             </DialogContent>
          </Dialog>
-
          {/* ORDER AUDIT MODAL */}
          <Dialog open={isOrderModalOpen} onOpenChange={setIsOrderModalOpen}>
             <DialogContent className="sm:max-w-4xl p-0 border-0 bg-white shadow-2xl rounded-[2.5rem] overflow-hidden max-h-[85vh] flex flex-col custom-scrollbar">
@@ -1789,7 +1780,6 @@ export default function AdminCommandCenterClient({
                </DialogFooter>
             </DialogContent>
          </Dialog>
-
          {/* SPECIAL DELIVERY MEDIATION MODAL */}
          <Dialog open={isMediationModalOpen} onOpenChange={setIsMediationModalOpen}>
             <DialogContent className="sm:max-w-2xl p-0 border-0 bg-white shadow-2xl rounded-[2.5rem] overflow-hidden max-h-[90vh] flex flex-col">

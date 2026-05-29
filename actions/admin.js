@@ -104,7 +104,6 @@ export async function getAdminStats() {
       }
     };
   } catch (err) {
-    console.error("Admin Stats Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -220,7 +219,6 @@ export async function getAllOrders({
     };
 
   } catch (err) {
-    console.error("Get Orders Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -277,7 +275,6 @@ export async function markOrderSettled(orderId) {
 
     return { success: true, message: "Full order settled successfully." };
   } catch (err) {
-    console.error("Settle Order Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -341,7 +338,6 @@ export async function markOrderItemSettled(orderItemId) {
 
     return { success: true, data: result };
   } catch (err) {
-    console.error("Settle Item Payout Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -456,7 +452,6 @@ export async function getSellerBankDetailsForOrder(orderId) {
 
     return { success: true, data: { sellers, deliveryPartners } };
   } catch (err) {
-    console.error("Get Seller Bank Details Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -494,7 +489,6 @@ export async function getPendingProfiles() {
 
     return { success: true, data: JSON.parse(JSON.stringify(profiles)) };
   } catch (err) {
-    console.error("Get Pending Profiles Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -577,7 +571,6 @@ export async function approveProfile(userId, role, notes = "") {
 
     return { success: true };
   } catch (err) {
-    console.error("Approve Profile Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -639,7 +632,6 @@ export async function rejectProfile(userId, role, notes = "") {
 
     return { success: true };
   } catch (err) {
-    console.error("Reject Profile Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -693,7 +685,6 @@ export async function bulkApproveProfiles(profileIds) {
 
     return { success: true, message: `Successfully approved ${actualFarmerIds.length + actualAgentIds.length + actualDeliveryIds.length} members.` };
   } catch (err) {
-    console.error("Bulk Approve Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -730,7 +721,6 @@ export async function adminDeleteOrder(orderId) {
       return { success: true, message: "Order deleted successfully" };
     });
   } catch (err) {
-    console.error("Admin Delete Order Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -784,7 +774,6 @@ export async function getAdminDeliveryJobs({
       }
     };
   } catch (err) {
-    console.error("Get Admin Delivery Jobs Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -812,7 +801,6 @@ export async function getAdminReviews() {
 
     return { success: true, data: JSON.parse(JSON.stringify(reviews)) };
   } catch (err) {
-    console.error("Get Admin Reviews Error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -871,7 +859,6 @@ export async function clearStaleOrders() {
 
     return { success: true, message: `Successfully cleared ${count} stale orders.` };
   } catch (err) {
-    console.error("Clear Stale Orders Error:", err);
     return { success: false, error: err.message };
   }
 }

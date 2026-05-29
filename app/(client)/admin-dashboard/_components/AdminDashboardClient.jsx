@@ -107,9 +107,7 @@ export default function AdminDashboardClient({
         if (s?.success) setStats(s.data);
         if (o?.success) setOrders(o.data);
         if (p?.success) setPendingProfiles(p.data);
-      } catch (err) {
-        console.error("Dashboard auto-refresh failed:", err);
-      }
+      } catch (err) {}
     };
 
     const intervalId = setInterval(refreshData, 10000);

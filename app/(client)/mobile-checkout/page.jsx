@@ -54,7 +54,6 @@ export default function MobileCheckoutPage() {
       rzpRef.current.open();
     } catch (err) {
       setError("An error occurred during payment initialization.");
-      console.error(err);
     }
   };
 

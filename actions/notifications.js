@@ -38,7 +38,6 @@ export async function createNotification({ userId, type, title, message, linkUrl
     
     return { success: true };
   } catch (error) {
-    console.error("Create Notification Error:", error);
     return { success: false, error: "Failed to create notification" };
   }
 }
@@ -49,7 +48,6 @@ export const getUserNotifications = cache(async () => {
   try {
     user = await currentUser();
   } catch (error) {
-    console.error("Clerk Authentication Error:", error);
     return { success: false, error: "Authentication service temporarily unavailable. Please try again later." };
   }
   if (!user) return { success: false, error: "Not logged in" };
@@ -74,7 +72,6 @@ export const getUserNotifications = cache(async () => {
       result = await fetchNotifications();
     } catch (err) {
       if (err.code === 'P1017') {
-        console.warn("Connection closed, retrying notification fetch...");
         result = await fetchNotifications(); // Simple one-time retry
       } else {
         throw err;
@@ -83,7 +80,6 @@ export const getUserNotifications = cache(async () => {
 
     return { success: true, data: result.notifications, unreadCount: result.unreadCount };
   } catch (error) {
-    console.error("Get Notifications Error:", error);
     return { success: false, error: "Failed to fetch notifications" };
   }
 });
@@ -94,7 +90,6 @@ export async function markNotificationAsRead(notificationId) {
   try {
     user = await currentUser();
   } catch (error) {
-    console.error("Clerk Authentication Error:", error);
     return { success: false, error: "Authentication service temporarily unavailable. Please try again later." };
   }
   if (!user) return { success: false, error: "Not logged in" };
@@ -117,7 +112,6 @@ export async function markNotificationAsRead(notificationId) {
 
     return { success: true };
   } catch (error) {
-    console.error("Mark Notification Read Error:", error);
     return { success: false, error: "Failed to mark as read" };
   }
 }
@@ -128,7 +122,6 @@ export async function markAllNotificationsAsRead() {
   try {
     user = await currentUser();
   } catch (error) {
-    console.error("Clerk Authentication Error:", error);
     return { success: false, error: "Authentication service temporarily unavailable. Please try again later." };
   }
   if (!user) return { success: false, error: "Not logged in" };
@@ -143,7 +136,6 @@ export async function markAllNotificationsAsRead() {
 
     return { success: true };
   } catch (error) {
-    console.error("Mark All Notifications Read Error:", error);
     return { success: false, error: "Failed to mark all as read" };
   }
 }
@@ -154,7 +146,6 @@ export async function deleteNotification(notificationId) {
   try {
     user = await currentUser();
   } catch (error) {
-    console.error("Clerk Authentication Error:", error);
     return { success: false, error: "Authentication service temporarily unavailable. Please try again later." };
   }
   if (!user) return { success: false, error: "Not logged in" };
@@ -176,7 +167,6 @@ export async function deleteNotification(notificationId) {
 
     return { success: true };
   } catch (error) {
-    console.error("Delete Notification Error:", error);
     return { success: false, error: "Failed to delete notification" };
   }
 }
@@ -187,7 +177,6 @@ export async function clearAllNotifications() {
   try {
     user = await currentUser();
   } catch (error) {
-    console.error("Clerk Authentication Error:", error);
     return { success: false, error: "Authentication service temporarily unavailable. Please try again later." };
   }
   if (!user) return { success: false, error: "Not logged in" };
@@ -201,7 +190,6 @@ export async function clearAllNotifications() {
 
     return { success: true };
   } catch (error) {
-    console.error("Clear All Notifications Error:", error);
     return { success: false, error: "Failed to clear notifications" };
   }
 }

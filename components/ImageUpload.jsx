@@ -39,8 +39,7 @@ export default function ImageUpload({ value = [], onChange, onRemove }) {
         // Pass new images back to parent
         onChange(newImages); 
     } catch (error) {
-        console.error(error);
-        toast.error("Error processing images");
+      toast.error("Error processing images");
     }
   };
 

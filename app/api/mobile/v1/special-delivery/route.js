@@ -30,7 +30,6 @@ export async function GET(req) {
     
     return NextResponse.json({ success: true, data: result.data || result });
   } catch (error) {
-    console.error("Mobile API getUserSpecialDeliveryRequests Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -70,7 +69,6 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
 
   } catch (error) {
-    console.error("Mobile API special-delivery POST Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -90,7 +88,6 @@ export async function DELETE(req) {
     }
     return NextResponse.json({ success: true, message: "Request cancelled/cleared successfully" });
   } catch (error) {
-    console.error("Mobile API special-delivery DELETE Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

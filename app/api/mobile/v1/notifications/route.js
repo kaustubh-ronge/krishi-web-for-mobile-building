@@ -14,7 +14,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, data: result.data || result || [] });
   } catch (error) {
-    console.error("Mobile API getUserNotifications Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -40,7 +39,6 @@ async function handleMarkRead(req) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    console.error("Mobile API markNotification Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

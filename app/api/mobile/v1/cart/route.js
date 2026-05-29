@@ -24,7 +24,6 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
-    console.error("Mobile API getCart Error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -40,15 +39,12 @@ export async function POST(req) {
 
     const result = await addToCart(productId, quantity);
 
-    console.log("addToCart Result for Mobile:", result);
-
     if (result?.error) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, data: result.cartItem });
   } catch (error) {
-    console.error("Mobile API addToCart Error Stack:", error);
     return NextResponse.json({ success: false, error: "Internal server error", details: error.message }, { status: 500 });
   }
 }

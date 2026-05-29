@@ -79,8 +79,7 @@ export default function InquiryModal({ isOpen, onClose, product, onSuccess, isSp
           toast.error(res.error || "Failed to send request.");
        }
     } catch (err) {
-       console.error("Inquiry Error:", err);
-       toast.error("Connection error. Try again.");
+      toast.error("Connection error. Try again.");
     } finally {
        setIsSending(false);
     }
