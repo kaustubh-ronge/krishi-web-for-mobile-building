@@ -549,9 +549,20 @@ export async function addToCart(productId, quantity) {
       return { success: false, error: "Invalid quantity. Please enter a positive number." };
     }
 
+    // 0.5 Fetch active special delivery approval to override standard constraints
+    const approvedReq = await db.specialDeliveryRequest.findFirst({
+      where: {
+        userId: user.id,
+        productId: productId,
+        status: 'APPROVED',
+        isConsumed: false
+      }
+    });
+
     // Min Quantity Check
-    if (quantity < (product.minOrderQuantity || 1)) {
-      return { success: false, error: `${product.productName} requires a minimum order of ${product.minOrderQuantity || 1} ${product.unit}.` };
+    const effectiveMinQty = approvedReq ? 1 : (product.minOrderQuantity || 1);
+    if (quantity < effectiveMinQty) {
+      return { success: false, error: `${product.productName} requires a minimum order of ${effectiveMinQty} ${product.unit}.` };
     }
 
     // 1. Atomic Cart Retrieval/Creation
@@ -573,16 +584,6 @@ export async function addToCart(productId, quantity) {
 
     const currentQtyInCart = existingItem ? existingItem.quantity : 0;
     const totalPotentialQty = currentQtyInCart + quantity;
-
-    // 2.5 Dynamic Stock & Out of Range Enforcement
-    const approvedReq = await db.specialDeliveryRequest.findFirst({
-      where: {
-        userId: user.id,
-        productId: productId,
-        status: 'APPROVED',
-        isConsumed: false
-      }
-    });
 
     // If item was previously soft-removed from cart but approval is still active, reset the flag
     if (approvedReq && approvedReq.isRemovedFromCart) {
