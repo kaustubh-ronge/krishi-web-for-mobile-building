@@ -811,6 +811,10 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
   const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "newest");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("region") || "");
   const [freshnessFilter, setFreshnessFilter] = useState("all");
+  const [rangeFilter, setRangeFilter] = useState(searchParams.get("rangeFilter") || "all");
+  const [radiusFilter, setRadiusFilter] = useState(searchParams.get("radiusFilter") || "");
+  const [stateFilter, setStateFilter] = useState(searchParams.get("state") || "");
+  const [cityFilter, setCityFilter] = useState(searchParams.get("city") || "");
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -905,6 +909,10 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
     setSortBy("newest");
     setLocationFilter("");
     setFreshnessFilter("all");
+    setRangeFilter("all");
+    setRadiusFilter("");
+    setStateFilter("");
+    setCityFilter("");
     router.push("/marketplace");
   };
 
@@ -1183,6 +1191,14 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
                       setLocationFilter={setLocationFilter}
                       freshnessFilter={freshnessFilter}
                       setFreshnessFilter={setFreshnessFilter}
+                      rangeFilter={rangeFilter}
+                      setRangeFilter={setRangeFilter}
+                      radiusFilter={radiusFilter}
+                      setRadiusFilter={setRadiusFilter}
+                      stateFilter={stateFilter}
+                      setStateFilter={setStateFilter}
+                      cityFilter={cityFilter}
+                      setCityFilter={setCityFilter}
                       updateParams={updateParams}
                     />
                   </div>
@@ -1277,6 +1293,14 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
                 setLocationFilter={setLocationFilter}
                 freshnessFilter={freshnessFilter}
                 setFreshnessFilter={setFreshnessFilter}
+                rangeFilter={rangeFilter}
+                setRangeFilter={setRangeFilter}
+                radiusFilter={radiusFilter}
+                setRadiusFilter={setRadiusFilter}
+                stateFilter={stateFilter}
+                setStateFilter={setStateFilter}
+                cityFilter={cityFilter}
+                setCityFilter={setCityFilter}
                 updateParams={updateParams}
               />
             </div>
@@ -1390,11 +1414,73 @@ function FilterSidebar({
   categories, selectedCategory, setSelectedCategory,
   priceRange, setPriceRange, showOutOfStock, setShowOutOfStock,
   locationFilter, setLocationFilter, freshnessFilter, setFreshnessFilter,
+  rangeFilter, setRangeFilter,
+  radiusFilter, setRadiusFilter,
+  stateFilter, setStateFilter,
+  cityFilter, setCityFilter,
   updateParams
 }) {
   return (
     <div className="space-y-8 w-full">
-      {/* Location Filter */}
+      {/* Range Filter (In Range / Out of Range) */}
+      <div className="space-y-4 w-full">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-blue-100 rounded-lg shrink-0">
+            <Compass className="h-4 w-4 text-blue-600" />
+          </div>
+          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Delivery Range</h4>
+        </div>
+        <div className="space-y-1 w-full">
+          {[
+            { value: 'all', label: 'All Products', desc: 'Show everything' },
+            { value: 'in_range', label: 'In Range', desc: 'Deliverable to your location' },
+            { value: 'out_of_range', label: 'Out of Range', desc: 'May require special delivery' }
+          ].map(option => (
+            <motion.button
+              key={option.value}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setRangeFilter(option.value); updateParams({ rangeFilter: option.value }); }}
+              className={`block text-sm w-full text-left p-3 rounded-xl transition-all ${rangeFilter === option.value
+                ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-semibold border-l-4 border-blue-500 shadow-md"
+                : "text-gray-600 hover:bg-gray-50"
+                }`}
+            >
+              <div>{option.label}</div>
+              <div className="text-xs opacity-60 mt-0.5">{option.desc}</div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Radius Filter */}
+      <div className="space-y-4 w-full">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-teal-100 rounded-lg shrink-0">
+            <MapPin className="h-4 w-4 text-teal-600" />
+          </div>
+          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Distance Radius</h4>
+        </div>
+        <Select value={radiusFilter} onValueChange={(val) => { setRadiusFilter(val); updateParams({ radiusFilter: val }); }}>
+          <SelectTrigger className="w-full bg-gray-50 border-2 border-gray-200 hover:border-teal-300 focus:border-teal-500 rounded-xl transition-all">
+            <SelectValue placeholder="Any distance" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            <SelectItem value="all">Any distance</SelectItem>
+            <SelectItem value="5">Within 5 km</SelectItem>
+            <SelectItem value="10">Within 10 km</SelectItem>
+            <SelectItem value="20">Within 20 km</SelectItem>
+            <SelectItem value="50">Within 50 km</SelectItem>
+            <SelectItem value="100">Within 100 km</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Separator />
+
+      {/* Extended Location Filters */}
       <div className="space-y-4 w-full">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-purple-100 rounded-lg shrink-0">
@@ -1402,17 +1488,29 @@ function FilterSidebar({
           </div>
           <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Location</h4>
         </div>
-        <div className="relative w-full">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <div className="space-y-3">
           <Input
             type="text"
-            placeholder="Search region/district..."
-            className="pl-10 h-11 bg-gray-50 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all w-full"
+            placeholder="State..."
+            className="h-11 bg-gray-50 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all w-full"
+            value={stateFilter}
+            onChange={(e) => { setStateFilter(e.target.value); updateParams({ state: e.target.value }); }}
+          />
+          <Input
+            type="text"
+            placeholder="City..."
+            className="h-11 bg-gray-50 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all w-full"
+            value={cityFilter}
+            onChange={(e) => { setCityFilter(e.target.value); updateParams({ city: e.target.value }); }}
+          />
+          <Input
+            type="text"
+            placeholder="Region/District..."
+            className="h-11 bg-gray-50 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all w-full"
             value={locationFilter}
             onChange={(e) => { setLocationFilter(e.target.value); updateParams({ region: e.target.value }); }}
           />
         </div>
-        <p className="text-xs text-gray-400 break-words">Find sellers near your location</p>
       </div>
 
       <Separator />

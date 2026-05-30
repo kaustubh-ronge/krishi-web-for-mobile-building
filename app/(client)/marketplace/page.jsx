@@ -43,7 +43,11 @@ export default async function MarketplacePage({ searchParams }) {
     sortBy: params.sortBy || "newest",
     sellerType: params.sellerType || "all",
     region: params.region || "",
-    district: params.district || ""
+    district: params.district || "",
+    state: params.state || "",
+    city: params.city || "",
+    rangeFilter: params.rangeFilter || "all",
+    radiusFilter: params.radiusFilter || ""
   });
   const { data: recentlyViewed } = await getRecentlyViewedProducts();
 

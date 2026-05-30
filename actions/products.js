@@ -424,7 +424,11 @@ export async function getMarketplaceListings({
   sellerType = "all",
   sortBy = "newest",
   region = "",
-  district = ""
+  district = "",
+  state = "",
+  city = "",
+  rangeFilter = "all",
+  radiusFilter = ""
 } = {}) {
   let userId = null;
   
@@ -456,27 +460,32 @@ export async function getMarketplaceListings({
       whereClause.sellerType = sellerType === 'farmers' ? 'farmer' : 'agent';
     }
 
-    // Region/District filtering
-    if (region || district) {
+    // Enhanced Region/District/State/City filtering
+    if (region || district || state || city) {
       const geoConditions = [];
-      if (region) {
-        geoConditions.push({ farmer: { region: { contains: region, mode: 'insensitive' } } });
-        geoConditions.push({ agent: { region: { contains: region, mode: 'insensitive' } } });
-      }
-      if (district) {
-        geoConditions.push({ farmer: { district: { contains: district, mode: 'insensitive' } } });
-        geoConditions.push({ agent: { district: { contains: district, mode: 'insensitive' } } });
-      }
+      const addGeoCondition = (profileType) => {
+        const conditions = {};
+        if (region) conditions.region = { contains: region, mode: 'insensitive' };
+        if (district) conditions.district = { contains: district, mode: 'insensitive' };
+        if (state) conditions.state = { contains: state, mode: 'insensitive' };
+        if (city) conditions.city = { contains: city, mode: 'insensitive' };
+        return { [profileType]: conditions };
+      };
+      
+      geoConditions.push(addGeoCondition('farmer'));
+      geoConditions.push(addGeoCondition('agent'));
+      
       whereClause.AND = whereClause.AND || [];
       whereClause.AND.push({ OR: geoConditions });
     }
 
+    let dbUser = null;
     if (userId) {
-      const dbUser = await db.user.findUnique({
+      dbUser = await db.user.findUnique({
         where: { id: userId },
         select: { 
-          farmerProfile: { select: { id: true } }, 
-          agentProfile: { select: { id: true } } 
+          farmerProfile: { select: { id: true, lat: true, lng: true } }, 
+          agentProfile: { select: { id: true, lat: true, lng: true } } 
         }
       });
 
@@ -501,28 +510,87 @@ export async function getMarketplaceListings({
       }
     }
 
-    const [listings, totalCount] = await Promise.all([
-      db.productListing.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        orderBy: sortBy === "price_low" ? { pricePerUnit: 'asc' } :
-                 sortBy === "price_high" ? { pricePerUnit: 'desc' } :
-                 sortBy === "rating" ? { averageRating: 'desc' } :
-                 { createdAt: 'desc' },
-        include: {
-          farmer: {
-            select: { name: true, farmName: true, region: true, district: true, averageRating: true }
-          },
-          agent: {
-            select: { name: true, companyName: true, region: true, district: true, averageRating: true }
+    const listings = await db.productListing.findMany({
+      where: whereClause,
+      orderBy: sortBy === "price_low" ? { pricePerUnit: 'asc' } :
+               sortBy === "price_high" ? { pricePerUnit: 'desc' } :
+               sortBy === "rating" ? { averageRating: 'desc' } :
+               { createdAt: 'desc' },
+      include: {
+        farmer: {
+          select: { name: true, farmName: true, region: true, district: true, state: true, city: true, averageRating: true, lat: true, lng: true, maxDeliveryRange: true }
+        },
+        agent: {
+          select: { name: true, companyName: true, region: true, district: true, state: true, city: true, averageRating: true, lat: true, lng: true, maxDeliveryRange: true }
+        }
+      }
+    });
+
+    const { getHaversineDistance, getSafeDeliveryRange } = await import('@/lib/utils');
+    const { DELIVERY_CONFIG } = await import('@/lib/delivery-config');
+
+    let userLat = null;
+    let userLng = null;
+    if (dbUser?.farmerProfile?.lat) {
+      userLat = dbUser.farmerProfile.lat;
+      userLng = dbUser.farmerProfile.lng;
+    } else if (dbUser?.agentProfile?.lat) {
+      userLat = dbUser.agentProfile.lat;
+      userLng = dbUser.agentProfile.lng;
+    }
+
+    let processedListings = listings.map(listing => {
+      let inRange = true; 
+      let distance = null;
+
+      if (userLat !== null && userLng !== null) {
+        const sellerLat = listing.sellerType === 'farmer' ? listing.farmer?.lat : listing.agent?.lat;
+        const sellerLng = listing.sellerType === 'farmer' ? listing.farmer?.lng : listing.agent?.lng;
+        
+        if (sellerLat && sellerLng) {
+          distance = getHaversineDistance(sellerLat, sellerLng, userLat, userLng);
+          const productRange = listing.maxDeliveryRange;
+          const profileRange = listing.sellerType === 'farmer' ? listing.farmer?.maxDeliveryRange : listing.agent?.maxDeliveryRange;
+          
+          try {
+            const effectiveMaxRange = getSafeDeliveryRange(productRange, profileRange, 100);
+            const bufferedMaxRange = effectiveMaxRange + DELIVERY_CONFIG.DISTANCE_TOLERANCE_KM;
+            if (Math.floor(distance) > bufferedMaxRange) {
+              inRange = false;
+            }
+          } catch (e) {
+            inRange = false;
           }
         }
-      }),
-      db.productListing.count({ where: whereClause })
-    ]);
+      }
+      return { ...listing, inRange, distance };
+    });
 
-    const enrichedListings = await attachDynamicStock(listings);
+    if (radiusFilter && userLat !== null && userLng !== null) {
+      const radius = parseFloat(radiusFilter);
+      if (!isNaN(radius)) {
+        processedListings = processedListings.filter(l => l.distance !== null && l.distance <= radius);
+      }
+    }
+
+    if (rangeFilter === 'in_range') {
+      processedListings = processedListings.filter(l => l.inRange);
+    } else if (rangeFilter === 'out_of_range') {
+      processedListings = processedListings.filter(l => !l.inRange);
+    }
+
+    // Default Grouping (In-Range First)
+    // JavaScript sort is stable in modern Node.js, preserving original DB sorting within groups.
+    processedListings.sort((a, b) => {
+      if (a.inRange && !b.inRange) return -1;
+      if (!a.inRange && b.inRange) return 1;
+      return 0;
+    });
+
+    const totalCount = processedListings.length;
+    const paginatedListings = processedListings.slice(skip, skip + limit);
+
+    const enrichedListings = await attachDynamicStock(paginatedListings);
 
     return { 
       success: true, 
