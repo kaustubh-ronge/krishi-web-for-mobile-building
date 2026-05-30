@@ -823,7 +823,7 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
 
   // --- Dynamic Categories ---
   const categories = useMemo(() => {
-    const uniqueNames = new Set(initialListings.map(item => item.productName));
+    const uniqueNames = new Set(initialListings.map(item => item.category).filter(Boolean));
     return ["All", ...Array.from(uniqueNames).sort()];
   }, [initialListings]);
 
@@ -833,7 +833,7 @@ export default function MarketplaceClient({ initialListings, metadata, userRole,
       const matchesSearch = item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = selectedCategory === "All" || item.productName === selectedCategory;
+      const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
 
       const matchesTab = activeTab === "all" ? true :
         activeTab === "farmers" ? item.sellerType === 'farmer' : item.sellerType === 'agent';

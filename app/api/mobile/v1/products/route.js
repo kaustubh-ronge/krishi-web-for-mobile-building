@@ -37,7 +37,11 @@ export async function GET(req) {
       sellerType: searchParams.get("sellerType") || "all",
       sortBy: searchParams.get("sortBy") || "newest",
       region: searchParams.get("region") || "",
-      district: searchParams.get("district") || ""
+      district: searchParams.get("district") || "",
+      state: searchParams.get("state") || "",
+      city: searchParams.get("city") || "",
+      rangeFilter: searchParams.get("rangeFilter") || "all",
+      radiusFilter: searchParams.get("radiusFilter") || ""
     };
 
     const result = await getMarketplaceListings(params);
